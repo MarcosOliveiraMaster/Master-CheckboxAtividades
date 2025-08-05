@@ -34,9 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     taskTitleInput: document.getElementById('task-title-input'),
     taskDescInput: document.getElementById('task-desc-input'),
     taskPrioritySelect: document.getElementById('task-priority-select'),
-    taskAreaSelect: document.getElementById('task-area-select'), // Novo elemento
-    taskSubmitBtn: document.getElementById('task-submit'),
-    modalResponsavelList: document.getElementById('modal-responsavel-list')
+    taskAreaSelect: document.getElementById('task-area-select'),
+    taskSubmitBtn: document.getElementById('task-submit')
   };
 
   // =============================================
@@ -50,7 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
       { nome: "Marcos", cor: "--azul" }
     ],
     sortOrder: 'desc',
-    currentTaskId: null
+    currentTaskId: null,
+    activeFilters: {
+      areas: [],
+      priorities: []
+    }
   };
 
   // =============================================
@@ -60,17 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedData();
     setupEventListeners();
     renderInitialUI();
+    setupFilterListeners();
   }
 
   function loadSavedData() {
-    const savedTasks = JSON.parse(localStorage.getItem('tasks'));
-    if (savedTasks) state.tasks = savedTasks;
-    
-    const savedAreas = JSON.parse(localStorage.getItem('areas'));
-    if (savedAreas) state.areas = savedAreas;
-    
-    const savedColabs = JSON.parse(localStorage.getItem('colaboradores'));
-    if (savedColabs) state.colaboradores = savedColabs;
+    try {
+      const savedTasks = JSON.parse(localStorage.getItem('tasks'));
+      if (savedTasks) state.tasks = savedTasks;
+      
+      const savedAreas = JSON.parse(localStorage.getItem('areas'));
+      if (savedAreas) state.areas = savedAreas;
+      
+      const savedColabs = JSON.parse(localStorage.getItem('colaboradores'));
+      if (savedColabs) state.colaboradores = savedColabs;
+    } catch (e) {
+      console.error("Erro ao carregar dados do localStorage:", e);
+    }
   }
 
   // =============================================
@@ -79,13 +87,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderInitialUI() {
     renderTasks();
     renderAreaFilters();
-    renderAreaOptions(); // Modificado para usar select
+    renderAreaOptions();
     renderResponsavelOptions();
     updateChart();
   }
 
   function renderTasks(tasksToRender = state.tasks) {
-    DOM.tasksContainer.innerHTML = tasksToRender.map(task => `
+    const sortedTasks = [...tasksToRender].sort((a, b) => {
+      if (a.completed && !b.completed) return 1;
+      if (!a.completed && b.completed) return -1;
+      return state.sortOrder === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
+    });
+
+    DOM.tasksContainer.innerHTML = sortedTasks.map(task => `
       <div class="task-card ${task.completed ? 'completed' : ''}" 
            data-id="${task.id}" 
            data-area="${task.area}" 
@@ -96,22 +110,24 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="task-content">
           <div class="task-header">
             <span class="task-area">${task.area}</span>
-            <span class="task-time">${formatDate(task.timestamp)}</span>
+            <span class="task-time">
+              ${formatDate(task.timestamp)}
+              ${task.completed ? `<br><small>Concluído em: ${formatDate(task.completedAt)}</small>` : ''}
+            </span>
           </div>
           <div class="task-title">${task.title}</div>
           <div class="task-desc">${task.desc}</div>
           <div class="task-priority ${task.priority}">${getPriorityLabel(task.priority)}</div>
         </div>
         <i class="fas fa-trash task-delete"></i>
-        ${task.attachment ? '<i class="fas fa-paperclip task-attachment"></i>' : ''}
       </div>
     `).join('');
   }
 
   function renderAreaFilters() {
     DOM.areaOptions.innerHTML = state.areas.map(area => `
-      <label>
-        <input type="checkbox" value="${area}"> 
+      <label class="filter-option-item">
+        <input type="checkbox" value="${area}" ${state.activeFilters.areas.includes(area) ? 'checked' : ''}> 
         ${area}
       </label>
     `).join('');
@@ -122,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <option value="${area}">${area}</option>
     `).join('');
     
-    // Adiciona uma opção padrão desabilitada
     const defaultOption = document.createElement('option');
     defaultOption.value = '';
     defaultOption.textContent = 'Selecione uma área';
@@ -132,10 +147,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderResponsavelOptions() {
-    DOM.modalResponsavelList.innerHTML = state.colaboradores.map(colab => `
-      <label>
-        <input type="radio" name="responsavel" value="${colab.nome}" required>
-        <span style="color: var(${colab.cor})">${colab.nome}</span>
+    const responsavelContainer = DOM.taskModal.querySelector('.responsaveis-container');
+    responsavelContainer.innerHTML = state.colaboradores.map(colab => `
+      <label class="responsavel-option ${colab.nome.toLowerCase()}-option">
+        <input type="radio" name="responsavel" value="${colab.nome}" class="custom-radio-input">
+        <span class="radio-checkmark"></span>
+        <span class="responsavel-name">${colab.nome}</span>
       </label>
     `).join('');
   }
@@ -165,12 +182,12 @@ document.addEventListener('DOMContentLoaded', () => {
       priority: taskData.priority,
       timestamp: Date.now(),
       completed: false,
-      attachment: null
+      completedAt: null
     };
 
     state.tasks.unshift(newTask);
     saveTasks();
-    renderTasks();
+    filterTasks();
     updateChart();
     closeModal(DOM.taskModal);
   }
@@ -178,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function deleteTask(taskId) {
     state.tasks = state.tasks.filter(t => t.id !== taskId);
     saveTasks();
-    renderTasks();
+    filterTasks();
     updateChart();
     closeModal(DOM.confirmModal);
   }
@@ -187,8 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const task = state.tasks.find(t => t.id === taskId);
     if (task) {
       task.completed = !task.completed;
+      task.completedAt = task.completed ? Date.now() : null;
       saveTasks();
-      renderTasks();
+      filterTasks();
       updateChart();
       
       if (state.tasks.every(t => t.completed)) {
@@ -204,10 +222,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================================
   // 6. FILTROS E ORDENAÇÃO
   // =============================================
+  function setupFilterListeners() {
+    // Filtro por área
+    DOM.areaOptions.addEventListener('change', (e) => {
+      if (e.target.type === 'checkbox') {
+        const area = e.target.value;
+        if (e.target.checked) {
+          state.activeFilters.areas.push(area);
+        } else {
+          state.activeFilters.areas = state.activeFilters.areas.filter(a => a !== area);
+        }
+        filterTasks();
+      }
+    });
+
+    // Filtro por prioridade
+    DOM.priorityOptions.addEventListener('change', (e) => {
+      if (e.target.type === 'checkbox') {
+        const priority = e.target.value;
+        if (e.target.checked) {
+          state.activeFilters.priorities.push(priority);
+        } else {
+          state.activeFilters.priorities = state.activeFilters.priorities.filter(p => p !== priority);
+        }
+        filterTasks();
+      }
+    });
+  }
+
   function filterTasks() {
     const searchTerm = DOM.searchInput.value.toLowerCase();
-    const selectedAreas = [...DOM.areaOptions.querySelectorAll('input:checked')].map(el => el.value);
-    const selectedPriorities = [...DOM.priorityOptions.querySelectorAll('input:checked')].map(el => el.value);
+    const selectedAreas = state.activeFilters.areas;
+    const selectedPriorities = state.activeFilters.priorities;
 
     const filtered = state.tasks.filter(task => {
       const matchesSearch = task.title.toLowerCase().includes(searchTerm) || 
@@ -223,11 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function toggleSortOrder() {
     state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
-    state.tasks.sort((a, b) => state.sortOrder === 'asc' 
-      ? a.timestamp - b.timestamp 
-      : b.timestamp - a.timestamp
-    );
-    renderTasks();
+    filterTasks();
     DOM.sortTimeBtn.innerHTML = `
       <i class="fas fa-clock"></i> Ordenar por hora (${state.sortOrder === 'asc' ? 'mais antigas' : 'mais novas'})
     `;
@@ -251,7 +293,9 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.taskTitleInput.value = '';
     DOM.taskDescInput.value = '';
     DOM.taskPrioritySelect.value = 'sem-urgencia';
-    DOM.taskAreaSelect.value = ''; // Reseta o select de área
+    DOM.taskAreaSelect.value = '';
+    const checkedRadio = document.querySelector('input[name="responsavel"]:checked');
+    if (checkedRadio) checkedRadio.checked = false;
     openModal(DOM.taskModal);
   }
 
@@ -304,13 +348,20 @@ document.addEventListener('DOMContentLoaded', () => {
         showDeleteConfirmation(taskId);
       }
     });
+
+    // Fechar modais ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        closeModal(e.target);
+      }
+    });
   }
 
   function handleTaskSubmit() {
     const title = DOM.taskTitleInput.value.trim();
     const desc = DOM.taskDescInput.value.trim();
     const priority = DOM.taskPrioritySelect.value;
-    const area = DOM.taskAreaSelect.value; // Obtém o valor do select
+    const area = DOM.taskAreaSelect.value;
     const responsavel = document.querySelector('input[name="responsavel"]:checked')?.value;
     
     if (!title) {
@@ -345,9 +396,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function formatDate(timestamp) {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('pt-BR') + ' ' + 
-           date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+    if (!(timestamp instanceof Date)) {
+      timestamp = new Date(timestamp);
+    }
+    if (isNaN(timestamp)) return '';
+    return timestamp.toLocaleDateString('pt-BR') + ' ' + 
+           timestamp.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
   }
 
   function getPriorityLabel(priority) {
@@ -365,12 +419,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function triggerConfetti() {
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#FF7D33', '#FFAA6B', '#E65C00']
-    });
+    if (typeof confetti === 'function') {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FF7D33', '#FFAA6B', '#E65C00']
+      });
+    }
   }
 
   // =============================================

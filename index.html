@@ -14,9 +14,21 @@
   <div class="container">
     <!-- Seção do Gráfico (30%) -->
     <div class="divgrafico">
-      <div class="donut-chart">
-        <span class="percentage">0%</span>
-        <span class="counter">0 / 0</span>
+      <div class="donut-chart-container">
+        <div class="donut-chart">
+          <span class="percentage">0%</span>
+          <span class="counter">0 / 0</span>
+        </div>
+        <div class="chart-info">
+          <div class="chart-info-item completed">
+            <span class="chart-info-color" style="background-color: var(--laranja-primario)"></span>
+            <span class="chart-info-label">Concluídas</span>
+          </div>
+          <div class="chart-info-item pending">
+            <span class="chart-info-color" style="background-color: var(--cinza-medio)"></span>
+            <span class="chart-info-label">Pendentes</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -40,9 +52,9 @@
             <i class="fas fa-exclamation-circle"></i> Urgência
           </button>
           <div class="filter-options hidden" id="priority-options">
-            <label><input type="checkbox" value="urgente"> Urgente</label>
-            <label><input type="checkbox" value="espera"> Em Espera</label>
-            <label><input type="checkbox" value="sem-urgencia"> Sem Urgência</label>
+            <label class="filter-option-item"><input type="checkbox" value="urgente"> Urgente</label>
+            <label class="filter-option-item"><input type="checkbox" value="espera"> Em Espera</label>
+            <label class="filter-option-item"><input type="checkbox" value="sem-urgencia"> Sem Urgência</label>
           </div>
         </div>
 
@@ -117,7 +129,22 @@
       </div>
       <div class="form-group">
         <label>Responsável</label>
-        <div class="listaSTR-container" id="modal-responsavel-list"></div>
+        <div class="responsaveis-container">
+          <div class="responsavel-option marcados-option">
+            <label class="custom-radio">
+              <input type="radio" name="responsavel" value="Marcos">
+              <span class="radio-checkmark"></span>
+              <span class="responsavel-name">Marcos</span>
+            </label>
+          </div>
+          <div class="responsavel-option ester-option">
+            <label class="custom-radio">
+              <input type="radio" name="responsavel" value="Ester">
+              <span class="radio-checkmark"></span>
+              <span class="responsavel-name">Ester</span>
+            </label>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label for="task-priority-select">Prioridade</label>
