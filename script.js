@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmModal: document.getElementById('confirm-modal'),
     taskModal: document.getElementById('task-modal'),
     closeModalBtns: document.querySelectorAll('.close-modal'),
+    
+    // Formulário de task
+    taskTitleInput: document.getElementById('task-title-input'),
+    taskDescInput: document.getElementById('task-desc-input'),
+    taskPrioritySelect: document.getElementById('task-priority-select'),
+    taskAreaSelect: document.getElementById('task-area-select'), // Novo elemento
+    taskSubmitBtn: document.getElementById('task-submit'),
+    modalResponsavelList: document.getElementById('modal-responsavel-list')
   };
 
   // =============================================
@@ -38,27 +46,44 @@ document.addEventListener('DOMContentLoaded', () => {
     tasks: JSON.parse(localStorage.getItem('tasks')) || [],
     areas: ["Financeiro", "Atendimento", "Operacional", "Técnico", "Mentoria", "Inovação", "Marketing", "Pesquisa"],
     colaboradores: [
-      { nome: "Ester", cor: "--laranja-borda" },
-      { nome: "Marcos", cor: "--azul-borda" }
+      { nome: "Ester", cor: "--laranja-primario" },
+      { nome: "Marcos", cor: "--azul" }
     ],
-    sortOrder: 'desc', // 'asc' ou 'desc'
-    currentTaskId: null,
-    selectedFile: null
+    sortOrder: 'desc',
+    currentTaskId: null
   };
 
   // =============================================
-  // 3. INICIALIZAÇÃO
+  // 3. FUNÇÕES DE INICIALIZAÇÃO
   // =============================================
   function init() {
-    renderTasks();
-    renderAreaFilters();
+    loadSavedData();
     setupEventListeners();
-    updateChart();
+    renderInitialUI();
+  }
+
+  function loadSavedData() {
+    const savedTasks = JSON.parse(localStorage.getItem('tasks'));
+    if (savedTasks) state.tasks = savedTasks;
+    
+    const savedAreas = JSON.parse(localStorage.getItem('areas'));
+    if (savedAreas) state.areas = savedAreas;
+    
+    const savedColabs = JSON.parse(localStorage.getItem('colaboradores'));
+    if (savedColabs) state.colaboradores = savedColabs;
   }
 
   // =============================================
-  // 4. RENDERIZAÇÃO
+  // 4. FUNÇÕES DE RENDERIZAÇÃO
   // =============================================
+  function renderInitialUI() {
+    renderTasks();
+    renderAreaFilters();
+    renderAreaOptions(); // Modificado para usar select
+    renderResponsavelOptions();
+    updateChart();
+  }
+
   function renderTasks(tasksToRender = state.tasks) {
     DOM.tasksContainer.innerHTML = tasksToRender.map(task => `
       <div class="task-card ${task.completed ? 'completed' : ''}" 
@@ -92,6 +117,29 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
+  function renderAreaOptions() {
+    DOM.taskAreaSelect.innerHTML = state.areas.map(area => `
+      <option value="${area}">${area}</option>
+    `).join('');
+    
+    // Adiciona uma opção padrão desabilitada
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Selecione uma área';
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    DOM.taskAreaSelect.prepend(defaultOption);
+  }
+
+  function renderResponsavelOptions() {
+    DOM.modalResponsavelList.innerHTML = state.colaboradores.map(colab => `
+      <label>
+        <input type="radio" name="responsavel" value="${colab.nome}" required>
+        <span style="color: var(${colab.cor})">${colab.nome}</span>
+      </label>
+    `).join('');
+  }
+
   function updateChart() {
     const totalTasks = state.tasks.length;
     const completedTasks = state.tasks.filter(t => t.completed).length;
@@ -117,8 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
       priority: taskData.priority,
       timestamp: Date.now(),
       completed: false,
-      attachment: null,
-      comments: ""
+      attachment: null
     };
 
     state.tasks.unshift(newTask);
@@ -201,6 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showTaskModal() {
     DOM.taskModal.querySelector('#modal-title').textContent = 'Nova Task';
+    DOM.taskTitleInput.value = '';
+    DOM.taskDescInput.value = '';
+    DOM.taskPrioritySelect.value = 'sem-urgencia';
+    DOM.taskAreaSelect.value = ''; // Reseta o select de área
     openModal(DOM.taskModal);
   }
 
@@ -233,6 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('confirm-cancel').addEventListener('click', () => closeModal(DOM.confirmModal));
     document.getElementById('confirm-delete').addEventListener('click', () => deleteTask(state.currentTaskId));
     
+    // Formulário de task
+    DOM.taskSubmitBtn.addEventListener('click', handleTaskSubmit);
+    
     // Delegação de eventos para elementos dinâmicos
     DOM.tasksContainer.addEventListener('click', (e) => {
       const taskCard = e.target.closest('.task-card');
@@ -249,17 +303,47 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.classList.contains('task-delete')) {
         showDeleteConfirmation(taskId);
       }
-      
-      // Ícone de anexo
-      if (e.target.classList.contains('task-attachment')) {
-        showAttachment(taskId);
-      }
+    });
+  }
+
+  function handleTaskSubmit() {
+    const title = DOM.taskTitleInput.value.trim();
+    const desc = DOM.taskDescInput.value.trim();
+    const priority = DOM.taskPrioritySelect.value;
+    const area = DOM.taskAreaSelect.value; // Obtém o valor do select
+    const responsavel = document.querySelector('input[name="responsavel"]:checked')?.value;
+    
+    if (!title) {
+      alert('Por favor, insira um título para a task!');
+      return;
+    }
+    
+    if (!area) {
+      alert('Selecione uma área!');
+      return;
+    }
+    
+    if (!responsavel) {
+      alert('Selecione um responsável!');
+      return;
+    }
+    
+    addTask({
+      title,
+      desc,
+      area,
+      responsavel,
+      priority
     });
   }
 
   // =============================================
   // 9. FUNÇÕES AUXILIARES
   // =============================================
+  function toggleFilter(menu) {
+    menu.classList.toggle('hidden');
+  }
+
   function formatDate(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleDateString('pt-BR') + ' ' + 
@@ -289,347 +373,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function toggleFilter(menu) {
-    menu.classList.toggle('hidden');
-  }
-
-// =============================================
-// 10. INICIALIZAÇÃO DA APLICAÇÃO (VERSÃO COMPLETA)
-// =============================================
-function initializeApp() {
-  // 10.1 Carrega dados salvos
-  loadSavedData();
-  
-  // 10.2 Configura todos os listeners
-  setupAllEventListeners();
-  
-  // 10.3 Renderiza a interface inicial
-  renderInitialUI();
-  
-  // 10.4 Verifica estado inicial
-  checkInitialState();
-}
-
-function loadSavedData() {
-  // Carrega tasks do localStorage
-  const savedTasks = JSON.parse(localStorage.getItem('tasks'));
-  if (savedTasks) state.tasks = savedTasks;
-  
-  // Carrega colaboradores
-  const savedColabs = JSON.parse(localStorage.getItem('colaboradores'));
-  if (savedColabs) state.colaboradores = savedColabs;
-  
-  // Carrega áreas
-  const savedAreas = JSON.parse(localStorage.getItem('areas'));
-  if (savedAreas) {
-    state.areas = savedAreas;
-  } else {
-    // Áreas padrão se não existirem
-    state.areas = ["Financeiro", "Atendimento", "Operacional", "Técnico", 
-                  "Mentoria", "Inovação", "Marketing", "Pesquisa"];
-    saveAreas();
-  }
-}
-
-function setupAllEventListeners() {
-  // Listeners básicos (já implementados)
-  setupEventListeners();
-  
-  // Listeners adicionais
-  document.getElementById('task-submit').addEventListener('click', handleTaskSubmit);
-  document.getElementById('file-input').addEventListener('change', handleFileUpload);
-  document.getElementById('save-resolution').addEventListener('click', saveTaskResolution);
-  
-  // Listeners para modais de gestão
-  document.getElementById('add-area-btn').addEventListener('click', showAddAreaModal);
-  document.getElementById('add-colab-btn').addEventListener('click', showAddColabModal);
-}
-
-function renderInitialUI() {
-  // Renderiza tasks
-  renderTasks();
-  
-  // Renderiza filtros
-  renderAreaFilters();
-  renderPriorityFilters();
-  
-  // Renderiza opções nos modais
-  renderAreaOptions();
-  renderResponsavelOptions();
-  
-  // Atualiza gráfico
-  updateChart();
-}
-
-function checkInitialState() {
-  // Verifica se há tasks completas para animação
-  if (state.tasks.length > 0 && state.tasks.every(t => t.completed)) {
-    triggerConfetti();
-  }
-  
-  // Verifica dados essenciais
-  if (state.colaboradores.length === 0) {
-    console.warn('Nenhum colaborador cadastrado');
-  }
-}
-
-// =============================================
-// FUNÇÕES ADICIONAIS PARA COMPLETAR
-// =============================================
-
-function handleTaskSubmit() {
-  const titleInput = document.getElementById('task-title-input');
-  const descInput = document.getElementById('task-desc-input');
-  const prioritySelect = document.getElementById('task-priority-select');
-  
-  // Validação
-  if (!titleInput.value.trim()) {
-    showAlert('Por favor, insira um título para a task!');
-    titleInput.focus();
-    return;
-  }
-  
-  // Obtém área e responsável selecionados
-  const area = document.querySelector('input[name="area"]:checked')?.value;
-  const responsavel = document.querySelector('input[name="responsavel"]:checked')?.value;
-  
-  if (!area || !responsavel) {
-    showAlert('Selecione uma área e um responsável!');
-    return;
-  }
-  
-  // Cria nova task
-  addTask({
-    title: titleInput.value.trim(),
-    desc: descInput.value.trim(),
-    area,
-    responsavel,
-    priority: prioritySelect.value
-  });
-  
-  // Limpa formulário
-  titleInput.value = '';
-  descInput.value = '';
-}
-
-function showAlert(message) {
-  const alertDiv = document.createElement('div');
-  alertDiv.className = 'alert-message';
-  alertDiv.textContent = message;
-  
-  document.body.appendChild(alertDiv);
-  setTimeout(() => alertDiv.remove(), 3000);
-}
-
-function showAddAreaModal() {
-  // Implementação da modal para adicionar nova área
-}
-
-function showAddColabModal() {
-  // Implementação da modal para adicionar novo colaborador
-}
-
-// =============================================
-// INICIALIZAÇÃO FINAL
-// =============================================
-document.addEventListener('DOMContentLoaded', initializeApp);
-
-// =============================================
-// 11. GESTÃO DE ANEXOS (PARTE QUE FALTARA)
-// =============================================
-
-function handleFileUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  // Valida tamanho (5MB máximo)
-  if (file.size > 5 * 1024 * 1024) {
-    alert('Arquivo muito grande! Máximo de 5MB permitido.');
-    return;
-  }
-
-  state.selectedFile = file;
-  displayFilePreview(file);
-}
-
-function displayFilePreview(file) {
-  const preview = document.getElementById('file-preview');
-  preview.innerHTML = '';
-
-  if (file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      preview.innerHTML = `<img src="${e.target.result}" class="file-thumbnail">`;
-    };
-    reader.readAsDataURL(file);
-  } else {
-    preview.innerHTML = `
-      <div class="file-icon">
-        <i class="fas fa-file-alt"></i>
-        <span>${file.name}</span>
-      </div>
-    `;
-  }
-}
-
-function saveAttachmentToTask(taskId) {
-  if (!state.selectedFile) return;
-
-  const task = state.tasks.find(t => t.id === taskId);
-  if (task) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      task.attachment = {
-        name: state.selectedFile.name,
-        type: state.selectedFile.type,
-        data: e.target.result.split(',')[1] // Remove o prefixo base64
-      };
-      saveTasks();
-      renderTasks();
-    };
-    reader.readAsDataURL(state.selectedFile);
-  }
-}
-
-// =============================================
-// 12. GESTÃO DE COLABORADORES (PARTE QUE FALTARA)
-// =============================================
-
-function addColaborador(nome, cor) {
-  state.colaboradores.push({ nome, cor });
-  saveColaboradores();
-  renderResponsavelOptions();
-}
-
-function removeColaborador(nome) {
-  state.colaboradores = state.colaboradores.filter(c => c.nome !== nome);
-  saveColaboradores();
-  renderResponsavelOptions();
-}
-
-function saveColaboradores() {
-  localStorage.setItem('colaboradores', JSON.stringify(state.colaboradores));
-}
-
-// =============================================
-// 13. GESTÃO DE ÁREAS (PARTE QUE FALTARA)
-// =============================================
-
-function addArea(novaArea) {
-  if (!state.areas.includes(novaArea)) {
-    state.areas.push(novaArea);
-    saveAreas();
-    renderAreaFilters();
-    renderAreaOptions();
-  }
-}
-
-function removeArea(area) {
-  state.areas = state.areas.filter(a => a !== area);
-  saveAreas();
-  renderAreaFilters();
-  renderAreaOptions();
-}
-
-function saveAreas() {
-  localStorage.setItem('areas', JSON.stringify(state.areas));
-}
-
-// =============================================
-// 14. EVENT LISTENERS ADICIONAIS (PARTE QUE FALTARA)
-// =============================================
-
-function setupAdditionalListeners() {
-  // Upload de arquivo
-  document.getElementById('file-input').addEventListener('change', handleFileUpload);
-  
-  // Formulário de task
-  document.getElementById('task-submit').addEventListener('click', () => {
-    const title = document.getElementById('task-title-input').value.trim();
-    const desc = document.getElementById('task-desc-input').value.trim();
-    const priority = document.getElementById('task-priority-select').value;
-    
-    // Validação básica
-    if (!title) {
-      alert('Por favor, insira um título para a task!');
-      return;
-    }
-    
-    // Obter área e responsável selecionados (simplificado)
-    const area = "Financeiro"; // Implementar lógica real
-    const responsavel = "Ester"; // Implementar lógica real
-    
-    addTask({
-      title,
-      desc,
-      area,
-      responsavel,
-      priority
-    });
-  });
-
-  // Modal de anexo
-  document.getElementById('save-resolution').addEventListener('click', () => {
-    if (state.currentTaskId) {
-      saveAttachmentToTask(state.currentTaskId);
-      closeModal(document.getElementById('attachment-modal'));
-    }
-  });
-}
-
-// =============================================
-// 15. INICIALIZAÇÃO COMPLETA (PARTE QUE FALTARA)
-// =============================================
-
-function completeInit() {
-  // Carrega dados salvos
-  const savedColaboradores = JSON.parse(localStorage.getItem('colaboradores'));
-  const savedAreas = JSON.parse(localStorage.getItem('areas'));
-  
-  if (savedColaboradores) state.colaboradores = savedColaboradores;
-  if (savedAreas) state.areas = savedAreas;
-  
-  // Renderiza opções
-  renderResponsavelOptions();
-  renderAreaOptions();
-  
-  // Configura listeners adicionais
-  setupAdditionalListeners();
-}
-
-// =============================================
-// 16. FUNÇÕES AUXILIARES ADICIONAIS
-// =============================================
-
-function renderResponsavelOptions() {
-  const container = document.getElementById('modal-responsavel-list');
-  if (!container) return;
-  
-  container.innerHTML = state.colaboradores.map(colab => `
-    <label>
-      <input type="radio" name="responsavel" value="${colab.nome}">
-      <span style="color: var(${colab.cor})">${colab.nome}</span>
-    </label>
-  `).join('');
-}
-
-function renderAreaOptions() {
-  const container = document.getElementById('modal-area-list');
-  if (!container) return;
-  
-  container.innerHTML = state.areas.map(area => `
-    <label>
-      <input type="radio" name="area" value="${area}">
-      ${area}
-    </label>
-  `).join('');
-}
-
-// =============================================
-// 17. INICIALIZAÇÃO FINAL
-// =============================================
-
-document.addEventListener('DOMContentLoaded', () => {
-  init();          // Primeira parte
-  completeInit();  // Segunda parte
+  // =============================================
+  // 10. INICIALIZAÇÃO
+  // =============================================
+  init();
 });
