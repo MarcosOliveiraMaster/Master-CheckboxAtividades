@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Manager STR</title>
+  
   <!-- Fontes e Ícones -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <!-- Container Principal -->
   <div class="container">
-    <!-- Seção do Gráfico (30%) -->
+    <!-- Seção do Gráfico -->
     <div class="divgrafico">
-      <div class="donut-chart-container">
+      <div class="donut-chart-container card">
         <div class="donut-chart">
           <span class="percentage">0%</span>
           <span class="counter">0 / 0</span>
@@ -32,21 +32,19 @@
       </div>
     </div>
 
-    <!-- Seção de Dados (70%) -->
+    <!-- Seção de Dados -->
     <div class="divdata">
-      <!-- Barra de Filtros -->
-      <div class="header-filters">
-        <!-- Filtro por Área -->
+      <!-- Filtros -->
+      <div class="header-filters card">
         <div class="filter-group">
           <button class="filter-btn" id="filter-area-btn">
             <i class="fas fa-filter"></i> Área
           </button>
           <div class="filter-options hidden" id="area-options">
-            <!-- Opções serão preenchidas via JavaScript -->
+            <!-- Preenchido via JS -->
           </div>
         </div>
 
-        <!-- Filtro por Prioridade -->
         <div class="filter-group">
           <button class="filter-btn" id="filter-priority-btn">
             <i class="fas fa-exclamation-circle"></i> Urgência
@@ -58,49 +56,33 @@
           </div>
         </div>
 
-        <!-- Campo de Busca -->
         <div class="search-container">
-          <input type="text" id="search-input" placeholder="Buscar tasks...">
-          <i class="fas fa-search"></i>
+          <input type="text" id="search-input" placeholder="Buscar tarefas..."/>
+          <!-- <i class="fas fa-search"></i> -->
         </div>
 
-        <!-- Botão de Ordenação -->
         <button class="sort-btn" id="sort-time-btn">
           <i class="fas fa-clock"></i> Ordenar por hora
         </button>
       </div>
 
       <!-- Botão Nova Task -->
-      <button id="novaTask" class="nova-task-btn">
-        <i class="fas fa-plus-circle"></i> Nova Task
+      <button id="novaTask" class="nova-task-btn card">
+        <i class="fas fa-plus-circle"></i> Nova Tarefa
       </button>
 
-      <!-- Container das Tasks -->
+      <!-- Lista de Tasks -->
       <div class="tasks-container" id="tasks-container">
-        <!-- Exemplo de Task (será gerado dinamicamente via JS) -->
-        <div class="task-card" data-id="1" data-area="Financeiro" data-priority="urgente" data-time="1234567890">
-          <div class="task-border" style="border-left: 4px solid #E65C00"></div>
-          <input type="checkbox" class="task-checkbox">
-          <div class="task-content">
-            <div class="task-header">
-              <span class="task-area">Financeiro</span>
-              <span class="task-time">05/08/2023 14:30</span>
-            </div>
-            <div class="task-title">Revisar relatório mensal</div>
-            <div class="task-desc">Conferir números das vendas do último mês</div>
-            <div class="task-priority urgente">Urgente</div>
-          </div>
-          <i class="fas fa-trash task-delete"></i>
-        </div>
+        <!-- Inserção dinâmica -->
       </div>
     </div>
   </div>
 
-  <!-- Modal de Confirmação (para exclusão) -->
+  <!-- Modal de Confirmação -->
   <div id="confirm-modal" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content card">
       <h3>Confirmar Exclusão</h3>
-      <p>Tem certeza que deseja excluir esta task permanentemente?</p>
+      <p>Tem certeza que deseja excluir esta tarefa permanentemente?</p>
       <div class="modal-buttons">
         <button id="confirm-cancel" class="cancel-btn">Cancelar</button>
         <button id="confirm-delete" class="delete-btn">Excluir</button>
@@ -108,55 +90,48 @@
     </div>
   </div>
 
-  <!-- Modal de Task (para adicionar/editar) -->
+  <!-- Modal de Task -->
   <div id="task-modal" class="modal hidden">
-    <div class="modal-content">
+    <div class="modal-content card">
       <span class="close-modal">&times;</span>
-      <h3 id="modal-title">Nova Task</h3>
+      <h3 id="modal-title">Nova Tarefa</h3>
+
       <div class="form-group">
-        <label for="task-title-input">Título</label>
-        <input type="text" id="task-title-input" placeholder="Digite o título">
+        <label for="task-title-input">Título da Tarefa</label>
+        <input type="text" id="task-title-input" placeholder="Ex: Desenvolver nova funcionalidade" />
       </div>
+
       <div class="form-group">
-        <label for="task-desc-input">Descrição</label>
-        <textarea id="task-desc-input" rows="3" placeholder="Digite a descrição"></textarea>
+        <label for="task-desc-input">Detalhes da Tarefa</label>
+        <textarea id="task-desc-input" rows="3" placeholder="Descreva os detalhes e requisitos da tarefa..."></textarea>
       </div>
+
       <div class="form-group">
-        <label for="task-area-select">Área</label>
+        <label for="task-area-select">Área Responsável</label>
         <select id="task-area-select" class="form-select">
-          <!-- Opções serão preenchidas via JavaScript -->
+          <!-- Preenchido via JS -->
         </select>
       </div>
+
       <div class="form-group">
         <label>Responsável</label>
-        <div class="responsaveis-container">
-          <div class="responsavel-option marcados-option">
-            <label class="custom-radio">
-              <input type="radio" name="responsavel" value="Marcos">
-              <span class="radio-checkmark"></span>
-              <span class="responsavel-name">Marcos</span>
-            </label>
-          </div>
-          <div class="responsavel-option ester-option">
-            <label class="custom-radio">
-              <input type="radio" name="responsavel" value="Ester">
-              <span class="radio-checkmark"></span>
-              <span class="responsavel-name">Ester</span>
-            </label>
-          </div>
+        <div class="responsaveis-container horizontal">
+          <!-- Renderizado via JS dinamicamente -->
         </div>
       </div>
+
       <div class="form-group">
-        <label for="task-priority-select">Prioridade</label>
+        <label for="task-priority-select">Nível de Prioridade</label>
         <select id="task-priority-select">
-          <option value="sem-urgencia">Sem Urgência</option>
-          <option value="espera">Em Espera</option>
-          <option value="urgente">Urgente</option>
+          <option value="sem-urgencia">Baixa Prioridade</option>
+          <option value="espera">Média Prioridade</option>
+          <option value="urgente">Alta Prioridade</option>
         </select>
       </div>
+
       <div class="modal-buttons">
         <button id="task-cancel" class="cancel-btn">Cancelar</button>
-        <button id="task-submit" class="submit-btn">Salvar</button>
+        <button id="task-submit" class="submit-btn">Salvar Tarefa</button>
       </div>
     </div>
   </div>

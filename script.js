@@ -1,36 +1,30 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // =============================================
-  // 1. CONSTANTES E ELEMENTOS DOM
-  // =============================================
+  // =============================
+  // 1. ELEMENTOS DOM
+  // =============================
   const DOM = {
-    // Elementos principais
     container: document.querySelector('.container'),
     divgrafico: document.querySelector('.divgrafico'),
     divdata: document.querySelector('.divdata'),
-    
-    // Elementos do gráfico
+
     donutChart: document.querySelector('.donut-chart'),
     percentageEl: document.querySelector('.percentage'),
     counterEl: document.querySelector('.counter'),
-    
-    // Filtros e busca
+
     filterAreaBtn: document.getElementById('filter-area-btn'),
     filterPriorityBtn: document.getElementById('filter-priority-btn'),
     areaOptions: document.getElementById('area-options'),
     priorityOptions: document.getElementById('priority-options'),
     searchInput: document.getElementById('search-input'),
     sortTimeBtn: document.getElementById('sort-time-btn'),
-    
-    // Tasks
+
     novaTaskBtn: document.getElementById('novaTask'),
     tasksContainer: document.getElementById('tasks-container'),
-    
-    // Modais
+
     confirmModal: document.getElementById('confirm-modal'),
     taskModal: document.getElementById('task-modal'),
     closeModalBtns: document.querySelectorAll('.close-modal'),
-    
-    // Formulário de task
+
     taskTitleInput: document.getElementById('task-title-input'),
     taskDescInput: document.getElementById('task-desc-input'),
     taskPrioritySelect: document.getElementById('task-priority-select'),
@@ -38,17 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
     taskSubmitBtn: document.getElementById('task-submit')
   };
 
-  // =============================================
-  // 2. ESTADO DA APLICAÇÃO
-  // =============================================
+  // =============================
+  // 2. ESTADO GLOBAL
+  // =============================
   const state = {
     tasks: JSON.parse(localStorage.getItem('tasks')) || [],
     areas: ["Financeiro", "Atendimento", "Operacional", "Técnico", "Mentoria", "Inovação", "Marketing", "Pesquisa"],
     colaboradores: [
-      { nome: "Ester", cor: "--laranja-primario" },
-      { nome: "Marcos", cor: "--azul" }
+      { nome: "Marcos", cor: "--azul" },
+      { nome: "Ester", cor: "--laranja-primario" }
     ],
-    sortOrder: 'desc',
+    sortOrder: 'desc', // 'desc' para mais novas, 'asc' para mais antigas
     currentTaskId: null,
     activeFilters: {
       areas: [],
@@ -56,9 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // =============================================
-  // 3. FUNÇÕES DE INICIALIZAÇÃO
-  // =============================================
+  // =============================
+  // 3. INICIALIZAÇÃO
+  // =============================
   function init() {
     loadSavedData();
     setupEventListeners();
@@ -70,42 +64,51 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const savedTasks = JSON.parse(localStorage.getItem('tasks'));
       if (savedTasks) state.tasks = savedTasks;
-      
+
+      // Opcional: carregar áreas e colaboradores se forem dinâmicos
       const savedAreas = JSON.parse(localStorage.getItem('areas'));
       if (savedAreas) state.areas = savedAreas;
-      
+
       const savedColabs = JSON.parse(localStorage.getItem('colaboradores'));
       if (savedColabs) state.colaboradores = savedColabs;
     } catch (e) {
       console.error("Erro ao carregar dados do localStorage:", e);
+      // Limpar dados corrompidos se necessário
+      localStorage.removeItem('tasks');
+      localStorage.removeItem('areas');
+      localStorage.removeItem('colaboradores');
     }
   }
 
-  // =============================================
-  // 4. FUNÇÕES DE RENDERIZAÇÃO
-  // =============================================
   function renderInitialUI() {
-    renderTasks();
+    filterTasks(); // Renderiza as tarefas com base nos filtros iniciais (todos)
     renderAreaFilters();
     renderAreaOptions();
     renderResponsavelOptions();
     updateChart();
+    updateSortButtonText(); // Atualiza o texto do botão de ordenação
   }
 
+  // =============================
+  // 4. RENDERIZAÇÃO
+  // =============================
   function renderTasks(tasksToRender = state.tasks) {
-    const sortedTasks = [...tasksToRender].sort((a, b) => {
+    const sorted = [...tasksToRender].sort((a, b) => {
+      // Tarefas concluídas vão para o final
       if (a.completed && !b.completed) return 1;
       if (!a.completed && b.completed) return -1;
+
+      // Ordena por timestamp
       return state.sortOrder === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
     });
 
-    DOM.tasksContainer.innerHTML = sortedTasks.map(task => `
-      <div class="task-card ${task.completed ? 'completed' : ''}" 
-           data-id="${task.id}" 
-           data-area="${task.area}" 
-           data-priority="${task.priority}" 
+    DOM.tasksContainer.innerHTML = sorted.map(task => `
+      <div class="task-card ${task.completed ? 'completed' : ''}"
+           data-id="${task.id}"
+           data-area="${task.area}"
+           data-priority="${task.priority}"
            data-time="${task.timestamp}">
-        <div class="task-border" style="border-left: 4px solid ${getResponsavelColor(task.responsavel)}"></div>
+        <div class="task-border" style="border-left: 6px solid ${getResponsavelColor(task.responsavel)}"></div>
         <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
         <div class="task-content">
           <div class="task-header">
@@ -134,303 +137,280 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderAreaOptions() {
-    DOM.taskAreaSelect.innerHTML = state.areas.map(area => `
-      <option value="${area}">${area}</option>
-    `).join('');
-    
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = 'Selecione uma área';
-    defaultOption.disabled = true;
-    defaultOption.selected = true;
-    DOM.taskAreaSelect.prepend(defaultOption);
+    DOM.taskAreaSelect.innerHTML = '<option value="" disabled selected>Selecione uma área</option>'; // Default option
+    state.areas.forEach(area => {
+      const option = document.createElement('option');
+      option.value = area;
+      option.textContent = area;
+      DOM.taskAreaSelect.appendChild(option);
+    });
   }
 
   function renderResponsavelOptions() {
-    const responsavelContainer = DOM.taskModal.querySelector('.responsaveis-container');
-    responsavelContainer.innerHTML = state.colaboradores.map(colab => `
+    const container = DOM.taskModal.querySelector('.responsaveis-container');
+    container.innerHTML = state.colaboradores.map(colab => `
       <label class="responsavel-option ${colab.nome.toLowerCase()}-option">
-        <input type="radio" name="responsavel" value="${colab.nome}" class="custom-radio-input">
-        <span class="radio-checkmark"></span>
+        <input type="radio" name="responsavel" value="${colab.nome}">
         <span class="responsavel-name">${colab.nome}</span>
       </label>
     `).join('');
   }
 
   function updateChart() {
-    const totalTasks = state.tasks.length;
-    const completedTasks = state.tasks.filter(t => t.completed).length;
-    const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const total = state.tasks.length;
+    const done = state.tasks.filter(t => t.completed).length;
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    DOM.percentageEl.textContent = `${percentage}%`;
-    DOM.counterEl.textContent = `${completedTasks} / ${totalTasks}`;
+    DOM.percentageEl.textContent = `${percent}%`;
+    DOM.counterEl.textContent = `${done} / ${total}`;
     DOM.donutChart.style.background = `
-      conic-gradient(var(--laranja-primario) ${percentage}%, var(--cinza-medio) ${percentage}%)
+      conic-gradient(var(--laranja-primario) ${percent}%, var(--cinza-medio) ${percent}%)
     `;
   }
 
-  // =============================================
-  // 5. MANIPULAÇÃO DE TASKS
-  // =============================================
-  function addTask(taskData) {
-    const newTask = {
-      id: Date.now(),
-      title: taskData.title,
-      desc: taskData.desc,
-      area: taskData.area,
-      responsavel: taskData.responsavel,
-      priority: taskData.priority,
-      timestamp: Date.now(),
-      completed: false,
-      completedAt: null
-    };
-
-    state.tasks.unshift(newTask);
-    saveTasks();
-    filterTasks();
-    updateChart();
-    closeModal(DOM.taskModal);
-  }
-
-  function deleteTask(taskId) {
-    state.tasks = state.tasks.filter(t => t.id !== taskId);
-    saveTasks();
-    filterTasks();
-    updateChart();
-    closeModal(DOM.confirmModal);
-  }
-
-  function toggleTaskStatus(taskId) {
-    const task = state.tasks.find(t => t.id === taskId);
-    if (task) {
-      task.completed = !task.completed;
-      task.completedAt = task.completed ? Date.now() : null;
-      saveTasks();
-      filterTasks();
-      updateChart();
-      
-      if (state.tasks.every(t => t.completed)) {
-        triggerConfetti();
-      }
-    }
-  }
-
-  function saveTasks() {
-    localStorage.setItem('tasks', JSON.stringify(state.tasks));
-  }
-
-  // =============================================
-  // 6. FILTROS E ORDENAÇÃO
-  // =============================================
+  // =============================
+  // 5. FILTRAGEM & BUSCA
+  // =============================
   function setupFilterListeners() {
-    // Filtro por área
-    DOM.areaOptions.addEventListener('change', (e) => {
-      if (e.target.type === 'checkbox') {
-        const area = e.target.value;
-        if (e.target.checked) {
-          state.activeFilters.areas.push(area);
-        } else {
-          state.activeFilters.areas = state.activeFilters.areas.filter(a => a !== area);
+    DOM.areaOptions.addEventListener('change', e => {
+      const val = e.target.value;
+      if (e.target.checked) {
+        if (!state.activeFilters.areas.includes(val)) {
+          state.activeFilters.areas.push(val);
         }
-        filterTasks();
+      } else {
+        state.activeFilters.areas = state.activeFilters.areas.filter(a => a !== val);
       }
+      filterTasks();
     });
 
-    // Filtro por prioridade
-    DOM.priorityOptions.addEventListener('change', (e) => {
-      if (e.target.type === 'checkbox') {
-        const priority = e.target.value;
-        if (e.target.checked) {
-          state.activeFilters.priorities.push(priority);
-        } else {
-          state.activeFilters.priorities = state.activeFilters.priorities.filter(p => p !== priority);
+    DOM.priorityOptions.addEventListener('change', e => {
+      const val = e.target.value;
+      if (e.target.checked) {
+        if (!state.activeFilters.priorities.includes(val)) {
+          state.activeFilters.priorities.push(val);
         }
-        filterTasks();
+      } else {
+        state.activeFilters.priorities = state.activeFilters.priorities.filter(p => p !== val);
       }
+      filterTasks();
     });
   }
 
   function filterTasks() {
-    const searchTerm = DOM.searchInput.value.toLowerCase();
-    const selectedAreas = state.activeFilters.areas;
-    const selectedPriorities = state.activeFilters.priorities;
-
+    const search = DOM.searchInput.value.toLowerCase();
     const filtered = state.tasks.filter(task => {
-      const matchesSearch = task.title.toLowerCase().includes(searchTerm) || 
-                          task.desc.toLowerCase().includes(searchTerm);
-      const matchesArea = selectedAreas.length === 0 || selectedAreas.includes(task.area);
-      const matchesPriority = selectedPriorities.length === 0 || selectedPriorities.includes(task.priority);
-      
+      const matchesSearch = task.title.toLowerCase().includes(search) || task.desc.toLowerCase().includes(search);
+      const matchesArea = state.activeFilters.areas.length === 0 || state.activeFilters.areas.includes(task.area);
+      const matchesPriority = state.activeFilters.priorities.length === 0 || state.activeFilters.priorities.includes(task.priority);
       return matchesSearch && matchesArea && matchesPriority;
     });
-
     renderTasks(filtered);
   }
 
   function toggleSortOrder() {
     state.sortOrder = state.sortOrder === 'asc' ? 'desc' : 'asc';
     filterTasks();
+    updateSortButtonText();
+  }
+
+  function updateSortButtonText() {
     DOM.sortTimeBtn.innerHTML = `
       <i class="fas fa-clock"></i> Ordenar por hora (${state.sortOrder === 'asc' ? 'mais antigas' : 'mais novas'})
     `;
   }
 
-  // =============================================
-  // 7. MANIPULAÇÃO DE MODAIS
-  // =============================================
+  // =============================
+  // 6. MODAIS E FORMULÁRIOS
+  // =============================
   function openModal(modal) {
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden'; // Previne scroll do body
   }
 
   function closeModal(modal) {
     modal.classList.add('hidden');
-    document.body.style.overflow = '';
+    document.body.style.overflow = ''; // Restaura scroll do body
   }
 
   function showTaskModal() {
-    DOM.taskModal.querySelector('#modal-title').textContent = 'Nova Task';
+    DOM.modalTitle = DOM.taskModal.querySelector('#modal-title');
+    DOM.modalTitle.textContent = 'Nova Tarefa';
     DOM.taskTitleInput.value = '';
     DOM.taskDescInput.value = '';
     DOM.taskPrioritySelect.value = 'sem-urgencia';
-    DOM.taskAreaSelect.value = '';
-    const checkedRadio = document.querySelector('input[name="responsavel"]:checked');
-    if (checkedRadio) checkedRadio.checked = false;
+    DOM.taskAreaSelect.value = ''; // Reseta para a opção padrão
+    const selectedResponsavel = DOM.taskModal.querySelector('input[name="responsavel"]:checked');
+    if (selectedResponsavel) selectedResponsavel.checked = false; // Desmarca o responsável
     openModal(DOM.taskModal);
-  }
-
-  function showDeleteConfirmation(taskId) {
-    state.currentTaskId = taskId;
-    openModal(DOM.confirmModal);
-  }
-
-  // =============================================
-  // 8. EVENT LISTENERS
-  // =============================================
-  function setupEventListeners() {
-    // Botão Nova Task
-    DOM.novaTaskBtn.addEventListener('click', showTaskModal);
-    
-    // Filtros
-    DOM.filterAreaBtn.addEventListener('click', () => toggleFilter(DOM.areaOptions));
-    DOM.filterPriorityBtn.addEventListener('click', () => toggleFilter(DOM.priorityOptions));
-    DOM.searchInput.addEventListener('input', filterTasks);
-    DOM.sortTimeBtn.addEventListener('click', toggleSortOrder);
-    
-    // Modais
-    DOM.closeModalBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        closeModal(btn.closest('.modal'));
-      });
-    });
-    
-    // Confirmação de exclusão
-    document.getElementById('confirm-cancel').addEventListener('click', () => closeModal(DOM.confirmModal));
-    document.getElementById('confirm-delete').addEventListener('click', () => deleteTask(state.currentTaskId));
-    
-    // Formulário de task
-    DOM.taskSubmitBtn.addEventListener('click', handleTaskSubmit);
-    
-    // Delegação de eventos para elementos dinâmicos
-    DOM.tasksContainer.addEventListener('click', (e) => {
-      const taskCard = e.target.closest('.task-card');
-      if (!taskCard) return;
-      
-      const taskId = parseInt(taskCard.dataset.id);
-      
-      // Checkbox
-      if (e.target.classList.contains('task-checkbox')) {
-        toggleTaskStatus(taskId);
-      }
-      
-      // Ícone de lixeira
-      if (e.target.classList.contains('task-delete')) {
-        showDeleteConfirmation(taskId);
-      }
-    });
-
-    // Fechar modais ao clicar fora
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('modal')) {
-        closeModal(e.target);
-      }
-    });
   }
 
   function handleTaskSubmit() {
     const title = DOM.taskTitleInput.value.trim();
     const desc = DOM.taskDescInput.value.trim();
-    const priority = DOM.taskPrioritySelect.value;
     const area = DOM.taskAreaSelect.value;
-    const responsavel = document.querySelector('input[name="responsavel"]:checked')?.value;
-    
-    if (!title) {
-      alert('Por favor, insira um título para a task!');
+    const priority = DOM.taskPrioritySelect.value;
+    const responsavel = DOM.taskModal.querySelector('input[name="responsavel"]:checked')?.value;
+
+    if (!title || !area || !responsavel) {
+      alert('Por favor, preencha o Título, a Área e selecione um Responsável para a tarefa.');
       return;
     }
-    
-    if (!area) {
-      alert('Selecione uma área!');
-      return;
-    }
-    
-    if (!responsavel) {
-      alert('Selecione um responsável!');
-      return;
-    }
-    
-    addTask({
-      title,
-      desc,
-      area,
-      responsavel,
-      priority
-    });
+
+    addTask({ title, desc, area, priority, responsavel });
   }
 
-  // =============================================
-  // 9. FUNÇÕES AUXILIARES
-  // =============================================
-  function toggleFilter(menu) {
-    menu.classList.toggle('hidden');
-  }
-
-  function formatDate(timestamp) {
-    if (!(timestamp instanceof Date)) {
-      timestamp = new Date(timestamp);
-    }
-    if (isNaN(timestamp)) return '';
-    return timestamp.toLocaleDateString('pt-BR') + ' ' + 
-           timestamp.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-  }
-
-  function getPriorityLabel(priority) {
-    const labels = {
-      'urgente': 'Urgente',
-      'espera': 'Em Espera',
-      'sem-urgencia': 'Sem Urgência'
+  function addTask(data) {
+    const newTask = {
+      id: Date.now(), // ID único baseado no timestamp
+      title: data.title,
+      desc: data.desc,
+      area: data.area,
+      responsavel: data.responsavel,
+      priority: data.priority,
+      timestamp: Date.now(), // Timestamp de criação
+      completed: false,
+      completedAt: null
     };
-    return labels[priority] || priority;
+
+    state.tasks.unshift(newTask); // Adiciona a nova tarefa no início
+    saveTasks();
+    filterTasks(); // Re-renderiza com a nova tarefa
+    updateChart();
+    closeModal(DOM.taskModal);
+  }
+
+  function deleteTask(id) {
+    state.tasks = state.tasks.filter(t => t.id !== id);
+    saveTasks();
+    filterTasks();
+    updateChart();
+    closeModal(DOM.confirmModal);
+  }
+
+  function toggleTaskStatus(id) {
+    const task = state.tasks.find(t => t.id === id);
+    if (task) {
+      task.completed = !task.completed;
+      task.completedAt = task.completed ? Date.now() : null; // Registra a data de conclusão
+      saveTasks();
+      filterTasks(); // Re-renderiza para atualizar o status visual
+      updateChart();
+      if (task.completed) { // Se a tarefa foi marcada como concluída
+        triggerConfetti();
+      }
+      // Opcional: Se todas as tarefas estiverem concluídas, disparar confetes
+      // if (state.tasks.length > 0 && state.tasks.every(t => t.completed)) {
+      //   triggerConfetti();
+      // }
+    }
+  }
+
+  // =============================
+  // 7. UTILITÁRIOS
+  // =============================
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(state.tasks));
+  }
+
+  function formatDate(ts) {
+    const date = new Date(ts);
+    if (isNaN(date.getTime())) { // Verifica se a data é válida
+      return '';
+    }
+    return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function getPriorityLabel(p) {
+    switch (p) {
+      case 'urgente': return 'Alta Prioridade';
+      case 'espera': return 'Média Prioridade';
+      case 'sem-urgencia': return 'Baixa Prioridade';
+      default: return p;
+    }
   }
 
   function getResponsavelColor(nome) {
-    const colaborador = state.colaboradores.find(c => c.nome === nome);
-    return colaborador ? `var(${colaborador.cor})` : 'var(--cinza-medio)';
+    const colab = state.colaboradores.find(c => c.nome === nome);
+    return colab ? `var(${colab.cor})` : 'var(--cinza-escuro)'; // Cor padrão se não encontrar
   }
 
   function triggerConfetti() {
+    // Verifica se a biblioteca confetti está carregada
     if (typeof confetti === 'function') {
       confetti({
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#FF7D33', '#FFAA6B', '#E65C00']
+        colors: ['#FF7D33', '#FFAA6B', '#E65C00', '#4e9ef5'] // Cores da paleta
       });
     }
   }
 
-  // =============================================
-  // 10. INICIALIZAÇÃO
-  // =============================================
+  function showDeleteConfirmation(id) {
+    state.currentTaskId = id;
+    openModal(DOM.confirmModal);
+  }
+
+  function toggleFilter(menu) {
+    menu.classList.toggle('hidden');
+  }
+
+  // =============================
+  // 8. EVENTOS
+  // =============================
+  function setupEventListeners() {
+    DOM.novaTaskBtn.addEventListener('click', showTaskModal);
+    DOM.filterAreaBtn.addEventListener('click', () => toggleFilter(DOM.areaOptions));
+    DOM.filterPriorityBtn.addEventListener('click', () => toggleFilter(DOM.priorityOptions));
+    DOM.searchInput.addEventListener('input', filterTasks);
+    DOM.sortTimeBtn.addEventListener('click', toggleSortOrder);
+
+    DOM.taskSubmitBtn.addEventListener('click', handleTaskSubmit);
+    
+    // Event listeners para fechar modais
+    DOM.closeModalBtns.forEach(btn => {
+      btn.addEventListener('click', () => closeModal(btn.closest('.modal')));
+    });
+    document.getElementById('task-cancel').addEventListener('click', () => closeModal(DOM.taskModal)); // Botão Cancelar do modal de task
+
+    document.getElementById('confirm-cancel').addEventListener('click', () => closeModal(DOM.confirmModal));
+    document.getElementById('confirm-delete').addEventListener('click', () => deleteTask(state.currentTaskId));
+
+    // Delegação de eventos para tasks (checkbox e delete)
+    DOM.tasksContainer.addEventListener('click', (e) => {
+      const card = e.target.closest('.task-card');
+      if (!card) return; // Clicou fora de um card
+
+      const id = parseInt(card.dataset.id);
+
+      if (e.target.classList.contains('task-checkbox')) {
+        toggleTaskStatus(id);
+      } else if (e.target.classList.contains('task-delete')) {
+        showDeleteConfirmation(id);
+      }
+    });
+
+    // Fechar modal ao clicar fora dele
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal') && !e.target.closest('.modal-content')) {
+        closeModal(e.target);
+      }
+    });
+
+    // Fechar menus de filtro ao clicar fora
+    document.addEventListener('click', (e) => {
+      if (!DOM.filterAreaBtn.contains(e.target) && !DOM.areaOptions.contains(e.target)) {
+        DOM.areaOptions.classList.add('hidden');
+      }
+      if (!DOM.filterPriorityBtn.contains(e.target) && !DOM.priorityOptions.contains(e.target)) {
+        DOM.priorityOptions.classList.add('hidden');
+      }
+    });
+  }
+
+  // =============================
+  // 9. BOOTSTRAP
+  // =============================
   init();
 });
