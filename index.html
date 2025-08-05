@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Div Gráfico (60% largura) -->
+    <div class="divgrafico">
+      <div class="donut-chart">
+        <span class="percentage">0%</span>
+        <span class="counter">0 / 0</span>
+      </div>
+    </div>
+
+    <!-- Div Dados (40% largura) -->
+    <div class="divdata">
+      <div class="divbutton">
+        <button id="novaTask"><i class="fas fa-plus"></i> Nova Task</button>
+      </div>
+      <div class="divcheckbox">
+        <!-- Formulário (aparece ao clicar no botão) -->
+        <div class="divtask hidden">
+          <textarea placeholder="Atividade" class="task-title" rows="1"></textarea>
+          <textarea placeholder="Descrição" class="task-desc" rows="3"></textarea>
+          <div class="task-buttons">
+            <button class="cancel-btn">Cancelar</button>
+            <button class="submit-btn">Enviar</button>
+          </div>
+        </div>
+        <!-- Container das Tasks -->
+        <div class="tasks-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
