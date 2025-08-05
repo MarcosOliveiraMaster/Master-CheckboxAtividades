@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Task Manager</title>
+  <title>Task Manager STR</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <!-- Div Gráfico (60% largura) -->
+    <!-- Div Gráfico (60%) -->
     <div class="divgrafico">
       <div class="donut-chart">
         <span class="percentage">0%</span>
@@ -18,23 +18,147 @@
       </div>
     </div>
 
-    <!-- Div Dados (40% largura) -->
+    <!-- Div Dados (40%) -->
     <div class="divdata">
+      <!-- Filtros no Header -->
+      <div class="header-filters">
+        <div id="filter-areas" class="listaSTR-container">
+          <button class="listaSTR-trigger">
+            <span class="selected-text">Filtrar por Área</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="listaSTR-options hidden">
+            <div class="listaSTR-search">
+              <input type="text" placeholder="Buscar área...">
+            </div>
+            <div class="listaSTR-items">
+              <!-- Itens serão injetados via JS -->
+            </div>
+            <button class="listaSTR-filter-btn">Filtrar</button>
+          </div>
+        </div>
+
+        <div id="filter-priority" class="listaSTR-container">
+          <button class="listaSTR-trigger">
+            <span class="selected-text">Filtrar por Urgência</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="listaSTR-options hidden">
+            <div class="listaSTR-items">
+              <label class="listaSTR-item">
+                <input type="checkbox" data-value="urgente">
+                <span class="ordem-indicator"></span>
+                Urgente
+              </label>
+              <label class="listaSTR-item">
+                <input type="checkbox" data-value="espera">
+                <span class="ordem-indicator"></span>
+                Em Espera
+              </label>
+              <label class="listaSTR-item">
+                <input type="checkbox" data-value="sem-urgencia">
+                <span class="ordem-indicator"></span>
+                Sem Urgência
+              </label>
+            </div>
+            <button class="listaSTR-filter-btn">Filtrar</button>
+          </div>
+        </div>
+
+        <div class="search-container">
+          <input type="text" class="search-input" placeholder="Buscar tasks...">
+          <i class="fas fa-search"></i>
+        </div>
+
+        <button id="sort-by-time" class="sort-btn">
+          <i class="fas fa-clock"></i> Ordenar por hora
+        </button>
+      </div>
+
+      <!-- Formulário de Nova Task -->
       <div class="divbutton">
         <button id="novaTask"><i class="fas fa-plus"></i> Nova Task</button>
       </div>
+      
       <div class="divcheckbox">
-        <!-- Formulário (aparece ao clicar no botão) -->
         <div class="divtask hidden">
           <textarea placeholder="Atividade" class="task-title" rows="1"></textarea>
           <textarea placeholder="Descrição" class="task-desc" rows="3"></textarea>
+          
+          <!-- ListaSTR para Áreas -->
+          <div id="areas-list" class="listaSTR-container">
+            <button class="listaSTR-trigger">
+              <span class="selected-text">Selecione a Área</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="listaSTR-options hidden">
+              <div class="listaSTR-items">
+                <!-- Itens serão injetados via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ListaSTR para Responsáveis -->
+          <div id="responsaveis-list" class="listaSTR-container">
+            <button class="listaSTR-trigger">
+              <span class="selected-text">Selecione o Responsável</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="listaSTR-options hidden">
+              <div class="listaSTR-items">
+                <!-- Itens serão injetados via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Prioridade -->
+          <select class="priority-select">
+            <option value="">Escolha a urgência</option>
+            <option value="urgente">Urgente</option>
+            <option value="espera">Em Espera</option>
+            <option value="sem-urgencia">Sem Urgência</option>
+          </select>
+
           <div class="task-buttons">
-            <button class="cancel-btn">Cancelar</button>
-            <button class="submit-btn">Enviar</button>
+            <button class="cancel-btn"><i class="fas fa-times"></i> Cancelar</button>
+            <button class="submit-btn"><i class="fas fa-check"></i> Enviar</button>
           </div>
         </div>
+
         <!-- Container das Tasks -->
         <div class="tasks-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Anexos -->
+  <div id="attachment-modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3>Resolução da Task</h3>
+      <div id="file-preview" class="file-preview"></div>
+      <textarea id="resolution-comments" placeholder="Comentários sobre a resolução..."></textarea>
+      <div class="file-upload-container">
+        <label for="file-input" class="file-upload-btn">
+          <i class="fas fa-paperclip"></i> Anexar Arquivo (max 5MB)
+        </label>
+        <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx">
+      </div>
+      <div class="modal-buttons">
+        <button id="cancel-resolution" class="cancel-btn">Cancelar</button>
+        <button id="save-resolution" class="submit-btn">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação -->
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-content confirm">
+      <h3>Deletar Task?</h3>
+      <p>Tem certeza que deseja deletar esta task permanentemente?</p>
+      <div class="modal-buttons">
+        <button id="confirm-cancel" class="cancel-btn">Não</button>
+        <button id="confirm-delete" class="delete-btn">Sim, Deletar</button>
       </div>
     </div>
   </div>

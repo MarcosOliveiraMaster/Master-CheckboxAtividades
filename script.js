@@ -10,139 +10,168 @@ document.addEventListener('DOMContentLoaded', () => {
   const donutChart = document.querySelector('.donut-chart');
   const percentageEl = document.querySelector('.percentage');
   const counterEl = document.querySelector('.counter');
+  const searchInput = document.querySelector('.search-input');
+  const sortByTimeBtn = document.getElementById('sort-by-time');
+  const attachmentModal = document.getElementById('attachment-modal');
+  const closeModalBtn = document.querySelector('.close-modal');
+  const confirmModal = document.getElementById('confirm-modal');
+  const fileInput = document.getElementById('file-input');
+  const filePreview = document.getElementById('file-preview');
 
-  // Carrega tasks do localStorage
+  // Dados iniciais
   let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+  let colaboradores = [
+    { nome: "Ester", cor: "var(--laranja-borda)" },
+    { nome: "Marcos", cor: "var(--azul-borda)" }
+  ];
+  let areas = ["Financeiro", "Atendimento", "Operacional", "Técnico", "Mentoria", "Inovação", "Marketing", "Pesquisa"];
+  let sortOrder = 'asc';
+
+  // Inicialização
+  initListaSTRs();
   renderTasks();
 
-  // Botão "Nova Task"
+  // Event Listeners
   novaTaskBtn.addEventListener('click', () => {
     divtask.classList.remove('hidden');
     taskTitleInput.focus();
   });
 
-  // Botão "Cancelar"
-  cancelBtn.addEventListener('click', () => {
-    divtask.classList.add('hidden');
-    taskTitleInput.value = '';
-    taskDescInput.value = '';
-  });
-
-  // Botão "Enviar"
+  cancelBtn.addEventListener('click', resetForm);
   submitBtn.addEventListener('click', addTask);
+  searchInput.addEventListener('input', filterTasks);
+  sortByTimeBtn.addEventListener('click', toggleSortOrder);
+  closeModalBtn.addEventListener('click', () => attachmentModal.classList.add('hidden'));
+  fileInput.addEventListener('change', handleFileUpload);
 
-  // Auto-resize para o textarea do título
-  taskTitleInput.addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
-  });
+  // Funções
+  function initListaSTRs() {
+    // Implementação das listasSTR para áreas e responsáveis
+    // [TODO] Adicionar lógica completa
+  }
 
-  // Adiciona task
   function addTask() {
     const title = taskTitleInput.value.trim();
     const desc = taskDescInput.value.trim();
 
-    if (!title) return;
+    if (!title) {
+      taskTitleInput.focus();
+      return;
+    }
 
     const newTask = {
       id: Date.now(),
       title,
       desc,
-      completed: false
+      area: "Financeiro", // [TODO] Pegar da listaSTR
+      responsavel: "Ester", // [TODO] Pegar da listaSTR
+      prioridade: "normal", // [TODO] Pegar do select
+      data: formatDate(new Date()),
+      concluido: false,
+      anexo: null,
+      comentarios: ""
     };
 
     tasks.unshift(newTask);
     saveTasks();
     renderTasks();
-
-    // Limpa e esconde o form
-    taskTitleInput.value = '';
-    taskDescInput.value = '';
-    divtask.classList.add('hidden');
+    resetForm();
   }
 
-  // Renderiza todas as tasks
   function renderTasks() {
     tasksContainer.innerHTML = '';
 
     tasks.forEach(task => {
       const taskEl = document.createElement('div');
-      taskEl.className = `task-card ${task.completed ? 'completed' : ''}`;
+      taskEl.className = `task-card ${task.concluido ? 'completed' : ''}`;
       taskEl.innerHTML = `
-        <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} data-id="${task.id}">
+        <div class="task-border" style="background-color: ${getResponsavelColor(task.responsavel)}"></div>
+        <input type="checkbox" class="task-checkbox" ${task.concluido ? 'checked' : ''} data-id="${task.id}">
         <div class="task-content">
+          <div class="task-header">
+            <span class="task-area">${task.area}</span>
+            <span class="task-time">${task.data}</span>
+          </div>
           <div class="task-title">${task.title}</div>
           <div class="task-desc">${task.desc}</div>
+          <select class="task-priority" data-id="${task.id}">
+            <option value="urgente" ${task.prioridade === 'urgente' ? 'selected' : ''}>Urgente</option>
+            <option value="espera" ${task.prioridade === 'espera' ? 'selected' : ''}>Em Espera</option>
+            <option value="sem-urgencia" ${task.prioridade === 'sem-urgencia' ? 'selected' : ''}>Sem Urgência</option>
+          </select>
         </div>
         <i class="fas fa-trash task-delete" data-id="${task.id}"></i>
+        ${task.anexo ? '<i class="fas fa-paperclip task-attachment" data-id="' + task.id + '"></i>' : ''}
       `;
       tasksContainer.appendChild(taskEl);
     });
 
-    // Atualiza gráfico
-    updateChart();
-
-    // Adiciona eventos aos novos elementos
+    // Adicionar eventos aos novos elementos
     document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-      checkbox.addEventListener('change', toggleTask);
+      checkbox.addEventListener('change', toggleTaskStatus);
     });
 
     document.querySelectorAll('.task-delete').forEach(icon => {
-      icon.addEventListener('click', deleteTask);
+      icon.addEventListener('click', showDeleteConfirmation);
     });
+
+    document.querySelectorAll('.task-attachment').forEach(icon => {
+      icon.addEventListener('click', showAttachment);
+    });
+
+    document.querySelectorAll('.task-priority').forEach(select => {
+      select.addEventListener('change', updatePriority);
+    });
+
+    updateChart();
   }
 
-  // Alterna task entre concluída/pendente
-  function toggleTask(e) {
+  function toggleTaskStatus(e) {
     const taskId = parseInt(e.target.dataset.id);
-    const taskIndex = tasks.findIndex(task => task.id === taskId);
+    const task = tasks.find(t => t.id === taskId);
     
-    tasks[taskIndex].completed = e.target.checked;
-    saveTasks();
-
-    // Reordena tasks (concluídas vão para o final)
-    tasks.sort((a, b) => a.completed - b.completed);
-    renderTasks();
-
-    // Animação de confete se todas estiverem concluídas
-    if (tasks.length > 0 && tasks.every(task => task.completed)) {
-    triggerConfetti();
+    if (task) {
+      task.concluido = e.target.checked;
+      saveTasks();
+      renderTasks();
+      
+      if (tasks.every(t => t.concluido)) {
+        triggerConfetti();
+      }
     }
   }
 
-  // Deleta task
-  function deleteTask(e) {
-    const taskId = parseInt(e.target.dataset.id);
-    tasks = tasks.filter(task => task.id !== taskId);
-    saveTasks();
-    renderTasks();
-  }
-
-  // Atualiza gráfico de rosca
   function updateChart() {
     const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(task => task.completed).length;
+    const completedTasks = tasks.filter(t => t.concluido).length;
     const percentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-    // Atualiza DOM
     percentageEl.textContent = `${percentage}%`;
     counterEl.textContent = `${completedTasks} / ${totalTasks}`;
-
-    // Atualiza gráfico
-    donutChart.style.background = `conic-gradient(#6a9bd8 ${percentage}%, #d3e0f0 ${percentage}%)`;
+    donutChart.style.background = `conic-gradient(var(--laranja-primario) ${percentage}%, var(--cinza) ${percentage}%)`;
   }
 
-  // Animação de confete
   function triggerConfetti() {
     confetti({
       particleCount: 150,
       spread: 70,
-      origin: { y: 0.6 }
+      origin: { y: 0.6 },
+      colors: ['#FF7D33', '#FFAA6B', '#E65C00']
     });
   }
 
-  // Salva tasks no localStorage
   function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }
+
+  // [TODO] Implementar outras funções necessárias
+  function resetForm() { /* ... */ }
+  function filterTasks() { /* ... */ }
+  function toggleSortOrder() { /* ... */ }
+  function showDeleteConfirmation() { /* ... */ }
+  function showAttachment() { /* ... */ }
+  function handleFileUpload() { /* ... */ }
+  function updatePriority() { /* ... */ }
+  function formatDate(date) { /* ... */ }
+  function getResponsavelColor(nome) { /* ... */ }
 });
