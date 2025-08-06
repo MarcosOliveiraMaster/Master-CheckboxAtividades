@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filterAreaBtn: document.getElementById('filter-area-btn'),
     filterPriorityBtn: document.getElementById('filter-priority-btn'),
+    filterResponsavelBtn: document.getElementById('filter-responsavel-btn'), // Novo DOM element
     areaOptions: document.getElementById('area-options'),
     priorityOptions: document.getElementById('priority-options'),
+    responsavelOptions: document.getElementById('responsavel-options'), // Novo DOM element
     searchInput: document.getElementById('search-input'),
     sortTimeBtn: document.getElementById('sort-time-btn'),
 
@@ -46,7 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTaskId: null,
     activeFilters: {
       areas: [],
-      priorities: []
+      priorities: [],
+      responsaveis: [] // Novo filtro de responsáveis
     }
   };
 
@@ -65,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const savedTasks = JSON.parse(localStorage.getItem('tasks'));
       if (savedTasks) state.tasks = savedTasks;
 
-      // Opcional: carregar áreas e colaboradores se forem dinâmicos
       const savedAreas = JSON.parse(localStorage.getItem('areas'));
       if (savedAreas) state.areas = savedAreas;
 
@@ -73,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (savedColabs) state.colaboradores = savedColabs;
     } catch (e) {
       console.error("Erro ao carregar dados do localStorage:", e);
-      // Limpar dados corrompidos se necessário
       localStorage.removeItem('tasks');
       localStorage.removeItem('areas');
       localStorage.removeItem('colaboradores');
@@ -81,12 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderInitialUI() {
-    filterTasks(); // Renderiza as tarefas com base nos filtros iniciais (todos)
+    filterTasks();
     renderAreaFilters();
     renderAreaOptions();
     renderResponsavelOptions();
     updateChart();
-    updateSortButtonText(); // Atualiza o texto do botão de ordenação
+    updateSortButtonText();
   }
 
   // =============================
@@ -94,11 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================
   function renderTasks(tasksToRender = state.tasks) {
     const sorted = [...tasksToRender].sort((a, b) => {
-      // Tarefas concluídas vão para o final
       if (a.completed && !b.completed) return 1;
       if (!a.completed && b.completed) return -1;
-
-      // Ordena por timestamp
       return state.sortOrder === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
     });
 
@@ -107,8 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
            data-id="${task.id}"
            data-area="${task.area}"
            data-priority="${task.priority}"
+           data-responsavel="${task.responsavel}"
            data-time="${task.timestamp}">
-        <div class="task-border" style="border-left: 6px solid ${getResponsavelColor(task.responsavel)}"></div>
+        <div class="task-border" style="border-left: 4px solid ${getResponsavelColor(task.responsavel)}"></div>
         <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
         <div class="task-content">
           <div class="task-header">
@@ -137,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderAreaOptions() {
-    DOM.taskAreaSelect.innerHTML = '<option value="" disabled selected>Selecione uma área</option>'; // Default option
+    DOM.taskAreaSelect.innerHTML = '<option value="" disabled selected>Selecione uma área</option>';
     state.areas.forEach(area => {
       const option = document.createElement('option');
       option.value = area;
@@ -195,6 +194,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       filterTasks();
     });
+
+    // Novo listener para o filtro de responsável
+    DOM.responsavelOptions.addEventListener('change', e => {
+      const val = e.target.value;
+      if (e.target.checked) {
+        if (!state.activeFilters.responsaveis.includes(val)) {
+          state.activeFilters.responsaveis.push(val);
+        }
+      } else {
+        state.activeFilters.responsaveis = state.activeFilters.responsaveis.filter(r => r !== val);
+      }
+      filterTasks();
+    });
   }
 
   function filterTasks() {
@@ -203,7 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const matchesSearch = task.title.toLowerCase().includes(search) || task.desc.toLowerCase().includes(search);
       const matchesArea = state.activeFilters.areas.length === 0 || state.activeFilters.areas.includes(task.area);
       const matchesPriority = state.activeFilters.priorities.length === 0 || state.activeFilters.priorities.includes(task.priority);
-      return matchesSearch && matchesArea && matchesPriority;
+      const matchesResponsavel = state.activeFilters.responsaveis.length === 0 || state.activeFilters.responsaveis.includes(task.responsavel); // Novo filtro
+
+      return matchesSearch && matchesArea && matchesPriority && matchesResponsavel;
     });
     renderTasks(filtered);
   }
@@ -225,12 +239,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================
   function openModal(modal) {
     modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // Previne scroll do body
+    document.body.style.overflow = 'hidden';
   }
 
   function closeModal(modal) {
     modal.classList.add('hidden');
-    document.body.style.overflow = ''; // Restaura scroll do body
+    document.body.style.overflow = '';
   }
 
   function showTaskModal() {
@@ -239,9 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.taskTitleInput.value = '';
     DOM.taskDescInput.value = '';
     DOM.taskPrioritySelect.value = 'sem-urgencia';
-    DOM.taskAreaSelect.value = ''; // Reseta para a opção padrão
+    DOM.taskAreaSelect.value = '';
     const selectedResponsavel = DOM.taskModal.querySelector('input[name="responsavel"]:checked');
-    if (selectedResponsavel) selectedResponsavel.checked = false; // Desmarca o responsável
+    if (selectedResponsavel) selectedResponsavel.checked = false;
     openModal(DOM.taskModal);
   }
 
@@ -262,20 +276,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function addTask(data) {
     const newTask = {
-      id: Date.now(), // ID único baseado no timestamp
+      id: Date.now(),
       title: data.title,
       desc: data.desc,
       area: data.area,
       responsavel: data.responsavel,
       priority: data.priority,
-      timestamp: Date.now(), // Timestamp de criação
+      timestamp: Date.now(),
       completed: false,
       completedAt: null
     };
 
-    state.tasks.unshift(newTask); // Adiciona a nova tarefa no início
+    state.tasks.unshift(newTask);
     saveTasks();
-    filterTasks(); // Re-renderiza com a nova tarefa
+    filterTasks();
     updateChart();
     closeModal(DOM.taskModal);
   }
@@ -292,17 +306,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const task = state.tasks.find(t => t.id === id);
     if (task) {
       task.completed = !task.completed;
-      task.completedAt = task.completed ? Date.now() : null; // Registra a data de conclusão
+      task.completedAt = task.completed ? Date.now() : null;
       saveTasks();
-      filterTasks(); // Re-renderiza para atualizar o status visual
+      filterTasks();
       updateChart();
-      if (task.completed) { // Se a tarefa foi marcada como concluída
+      if (task.completed) {
         triggerConfetti();
       }
-      // Opcional: Se todas as tarefas estiverem concluídas, disparar confetes
-      // if (state.tasks.length > 0 && state.tasks.every(t => t.completed)) {
-      //   triggerConfetti();
-      // }
     }
   }
 
@@ -315,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formatDate(ts) {
     const date = new Date(ts);
-    if (isNaN(date.getTime())) { // Verifica se a data é válida
+    if (isNaN(date.getTime())) {
       return '';
     }
     return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -332,17 +342,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function getResponsavelColor(nome) {
     const colab = state.colaboradores.find(c => c.nome === nome);
-    return colab ? `var(${colab.cor})` : 'var(--cinza-escuro)'; // Cor padrão se não encontrar
+    return colab ? `var(${colab.cor})` : 'var(--cinza-escuro)';
   }
 
   function triggerConfetti() {
-    // Verifica se a biblioteca confetti está carregada
     if (typeof confetti === 'function') {
       confetti({
-        particleCount: 150,
-        spread: 70,
+        particleCount: 100, // Diminuído
+        spread: 60, // Diminuído
         origin: { y: 0.6 },
-        colors: ['#FF7D33', '#FFAA6B', '#E65C00', '#4e9ef5'] // Cores da paleta
+        colors: ['#FF7D33', '#FFAA6B', '#E65C00', '#4e9ef5']
       });
     }
   }
@@ -363,24 +372,23 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.novaTaskBtn.addEventListener('click', showTaskModal);
     DOM.filterAreaBtn.addEventListener('click', () => toggleFilter(DOM.areaOptions));
     DOM.filterPriorityBtn.addEventListener('click', () => toggleFilter(DOM.priorityOptions));
+    DOM.filterResponsavelBtn.addEventListener('click', () => toggleFilter(DOM.responsavelOptions)); // Novo evento
     DOM.searchInput.addEventListener('input', filterTasks);
     DOM.sortTimeBtn.addEventListener('click', toggleSortOrder);
 
     DOM.taskSubmitBtn.addEventListener('click', handleTaskSubmit);
     
-    // Event listeners para fechar modais
     DOM.closeModalBtns.forEach(btn => {
       btn.addEventListener('click', () => closeModal(btn.closest('.modal')));
     });
-    document.getElementById('task-cancel').addEventListener('click', () => closeModal(DOM.taskModal)); // Botão Cancelar do modal de task
+    document.getElementById('task-cancel').addEventListener('click', () => closeModal(DOM.taskModal));
 
     document.getElementById('confirm-cancel').addEventListener('click', () => closeModal(DOM.confirmModal));
     document.getElementById('confirm-delete').addEventListener('click', () => deleteTask(state.currentTaskId));
 
-    // Delegação de eventos para tasks (checkbox e delete)
     DOM.tasksContainer.addEventListener('click', (e) => {
       const card = e.target.closest('.task-card');
-      if (!card) return; // Clicou fora de um card
+      if (!card) return;
 
       const id = parseInt(card.dataset.id);
 
@@ -391,7 +399,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Fechar modal ao clicar fora dele
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('modal') && !e.target.closest('.modal-content')) {
         closeModal(e.target);
@@ -405,6 +412,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (!DOM.filterPriorityBtn.contains(e.target) && !DOM.priorityOptions.contains(e.target)) {
         DOM.priorityOptions.classList.add('hidden');
+      }
+      // Novo: Fechar filtro de responsável ao clicar fora
+      if (!DOM.filterResponsavelBtn.contains(e.target) && !DOM.responsavelOptions.contains(e.target)) {
+        DOM.responsavelOptions.classList.add('hidden');
       }
     });
   }

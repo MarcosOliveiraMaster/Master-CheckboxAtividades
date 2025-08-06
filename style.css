@@ -15,12 +15,12 @@
   --branco: #ffffff;
   --preto: #212529;
 
-  --borda-radius: 12px; /* Aumentado para mais arredondamento */
+  --borda-radius: 10px; /* Diminuído */
   --borda-fina: 1px solid var(--cinza-medio);
 
-  --sombra-leve: 0 4px 12px rgba(0,0,0,0.08); /* Sombra mais suave */
-  --sombra-media: 0 8px 24px rgba(0,0,0,0.12); /* Sombra mais pronunciada */
-  --sombra-forte: 0 12px 36px rgba(0,0,0,0.18); /* Sombra para destaque */
+  --sombra-leve: 0 2px 8px rgba(0,0,0,0.06); /* Sombra mais suave */
+  --sombra-media: 0 4px 16px rgba(0,0,0,0.10); /* Sombra mais pronunciada */
+  --sombra-forte: 0 6px 24px rgba(0,0,0,0.15); /* Sombra para destaque */
 }
 
 /* ========================
@@ -36,8 +36,9 @@
 body {
   background-color: var(--cinza-claro);
   color: var(--preto);
-  line-height: 1.6;
-  overflow: hidden; /* Garante que o scroll seja apenas nas áreas específicas */
+  line-height: 1.5; /* Diminuído */
+  overflow: hidden;
+  font-size: 0.9rem; /* Tamanho de fonte base diminuído */
 }
 
 .hidden {
@@ -49,7 +50,7 @@ body {
   background: var(--branco);
   border-radius: var(--borda-radius);
   box-shadow: var(--sombra-leve);
-  padding: 20px;
+  padding: 15px; /* Diminuído */
 }
 
 /* ========================
@@ -58,15 +59,15 @@ body {
 .container {
   display: flex;
   height: 100vh;
-  padding: 20px; /* Adiciona padding ao container principal */
-  gap: 20px; /* Espaçamento entre as colunas */
+  padding: 15px; /* Diminuído */
+  gap: 15px; /* Diminuído */
 }
 
 /* ========================
    SEÇÃO DO GRÁFICO
 ======================== */
 .divgrafico {
-  width: 30%;
+  width: 25%; /* Diminuído */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -77,14 +78,14 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  width: 100%; /* Ocupa a largura total da divgrafico */
-  max-width: 300px; /* Limita o tamanho máximo */
+  gap: 15px; /* Diminuído */
+  width: 100%;
+  max-width: 250px; /* Diminuído */
 }
 
 .donut-chart {
-  width: 200px;
-  height: 200px;
+  width: 160px; /* Diminuído */
+  height: 160px; /* Diminuído */
   border-radius: 50%;
   background: conic-gradient(var(--laranja-primario) 0%, var(--cinza-medio) 0%);
   display: flex;
@@ -93,73 +94,73 @@ body {
   justify-content: center;
   position: relative;
   animation: pulse 1.5s infinite;
-  box-shadow: var(--sombra-media); /* Sombra mais forte para o gráfico */
+  box-shadow: var(--sombra-media);
 }
 
 .percentage {
-  font-size: 2.2rem; /* Aumentado */
-  font-weight: 700; /* Mais negrito */
+  font-size: 1.8rem; /* Diminuído */
+  font-weight: 700;
   color: var(--laranja-escuro);
 }
 
 .counter {
-  font-size: 1rem; /* Aumentado */
+  font-size: 0.8rem; /* Diminuído */
   color: var(--cinza-escuro);
-  margin-top: 5px;
+  margin-top: 3px; /* Diminuído */
 }
 
 @keyframes pulse {
   0% { transform: scale(1); }
-  50% { transform: scale(1.03); } /* Pulso mais sutil */
+  50% { transform: scale(1.02); } /* Pulso mais sutil */
   100% { transform: scale(1); }
 }
 
 .chart-info {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px; /* Diminuído */
   width: 100%;
 }
 
 .chart-info-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px; /* Aumentado */
+  gap: 8px; /* Diminuído */
+  padding: 8px; /* Diminuído */
   border-radius: var(--borda-radius);
   background-color: var(--cinza-claro);
-  box-shadow: var(--sombra-leve); /* Sombra para os itens de info */
+  box-shadow: var(--sombra-leve);
 }
 
 .chart-info-color {
-  width: 24px; /* Aumentado */
-  height: 24px; /* Aumentado */
+  width: 20px; /* Diminuído */
+  height: 20px; /* Diminuído */
   border-radius: 50%;
 }
 
 .chart-info-label {
   font-weight: 500;
   color: var(--preto);
+  font-size: 0.9rem; /* Diminuído */
 }
 
 /* ========================
    SEÇÃO DE DADOS
 ======================== */
 .divdata {
-  flex: 1; /* Ocupa o restante do espaço */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Espaçamento entre os elementos da coluna de dados */
+  gap: 15px; /* Diminuído */
 }
 
 .header-filters {
   display: flex;
-  gap: 15px; /* Aumentado */
-  padding: 15px 20px; /* Padding ajustado */
-  border-bottom: none; /* Removido, pois o card já tem sombra */
+  gap: 10px; /* Diminuído */
+  padding: 10px 15px; /* Diminuído */
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between; /* Distribui os itens */
+  justify-content: space-between;
 }
 
 .filter-group {
@@ -170,15 +171,16 @@ body {
   background: var(--branco);
   border: var(--borda-fina);
   border-radius: var(--borda-radius);
-  padding: 10px 18px; /* Aumentado */
+  padding: 8px 15px; /* Diminuído */
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px; /* Aumentado */
-  font-weight: 600; /* Mais negrito */
+  gap: 8px; /* Diminuído */
+  font-weight: 600;
   color: var(--preto);
   transition: all 0.2s ease;
-  box-shadow: var(--sombra-leve); /* Sombra para os botões de filtro */
+  box-shadow: var(--sombra-leve);
+  font-size: 0.9rem; /* Diminuído */
 }
 
 .filter-btn:hover {
@@ -188,28 +190,28 @@ body {
 
 .filter-options {
   position: absolute;
-  top: calc(100% + 10px); /* Ajusta a posição abaixo do botão */
+  top: calc(100% + 8px); /* Ajustado */
   left: 0;
   background: var(--branco);
-  border: none; /* Removido, pois o card já tem sombra */
   border-radius: var(--borda-radius);
-  padding: 15px; /* Aumentado */
+  padding: 10px; /* Diminuído */
   z-index: 100;
   box-shadow: var(--sombra-media);
-  min-width: 220px; /* Aumentado */
+  min-width: 180px; /* Diminuído */
   display: flex;
   flex-direction: column;
-  gap: 8px; /* Espaçamento entre as opções */
+  gap: 6px; /* Diminuído */
 }
 
 .filter-option-item {
-  display: flex; /* Para alinhar checkbox e texto */
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px; /* Aumentado */
+  gap: 8px; /* Diminuído */
+  padding: 6px 8px; /* Diminuído */
   cursor: pointer;
-  border-radius: 8px; /* Arredondamento menor para itens internos */
+  border-radius: 6px; /* Diminuído */
   transition: background 0.2s ease;
+  font-size: 0.9rem; /* Diminuído */
 }
 
 .filter-option-item:hover {
@@ -218,10 +220,10 @@ body {
 
 .filter-option-item input[type="checkbox"] {
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 18px; /* Diminuído */
+  height: 18px; /* Diminuído */
   border: 2px solid var(--cinza-escuro);
-  border-radius: 6px; /* Arredondamento para o checkbox */
+  border-radius: 5px; /* Diminuído */
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
@@ -233,8 +235,8 @@ body {
 }
 
 .filter-option-item input[type="checkbox"]:checked::after {
-  content: '\2713'; /* Checkmark */
-  font-size: 14px;
+  content: '\2713';
+  font-size: 12px; /* Diminuído */
   color: var(--branco);
   position: absolute;
   top: 50%;
@@ -245,15 +247,15 @@ body {
 .search-container {
   position: relative;
   flex: 1;
-  min-width: 250px; /* Aumentado */
+  min-width: 200px; /* Diminuído */
 }
 
 #search-input {
   width: 100%;
-  padding: 10px 15px 10px 40px; /* Padding ajustado para ícone */
+  padding: 8px 12px 8px 35px; /* Diminuído */
   border: var(--borda-fina);
   border-radius: var(--borda-radius);
-  font-size: 1rem; /* Aumentado */
+  font-size: 0.9rem; /* Diminuído */
   box-shadow: var(--sombra-leve);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -265,23 +267,25 @@ body {
 }
 
 .search-container i {
-  left: 15px; /* Ajusta posição do ícone */
+  left: 12px; /* Ajustado */
   color: var(--cinza-escuro);
+  font-size: 0.9rem; /* Diminuído */
 }
 
 .sort-btn {
   background: var(--laranja-claro);
   color: var(--branco);
   border: none;
-  padding: 10px 18px; /* Aumentado */
+  padding: 8px 15px; /* Diminuído */
   border-radius: var(--borda-radius);
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px; /* Diminuído */
   transition: background 0.2s ease, box-shadow 0.2s ease;
   box-shadow: var(--sombra-leve);
+  font-size: 0.9rem; /* Diminuído */
 }
 
 .sort-btn:hover {
@@ -296,23 +300,22 @@ body {
   background: var(--laranja-primario);
   color: var(--branco);
   border: none;
-  padding: 15px 25px; /* Aumentado */
+  padding: 12px 20px; /* Diminuído */
   border-radius: var(--borda-radius);
-  margin: 0 0 0 0; /* Removido margin lateral */
   cursor: pointer;
-  font-weight: 700; /* Mais negrito */
-  font-size: 1.1rem; /* Aumentado */
+  font-weight: 700;
+  font-size: 1rem; /* Diminuído */
   display: flex;
   align-items: center;
-  justify-content: center; /* Centraliza conteúdo */
-  gap: 10px; /* Aumentado */
+  justify-content: center;
+  gap: 8px; /* Diminuído */
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: var(--sombra-media); /* Sombra para o botão principal */
+  box-shadow: var(--sombra-media);
 }
 
 .nova-task-btn:hover {
   background: var(--laranja-escuro);
-  transform: translateY(-2px); /* Efeito de "levantar" */
+  transform: translateY(-1px); /* Efeito mais sutil */
   box-shadow: var(--sombra-forte);
 }
 
@@ -321,42 +324,41 @@ body {
 ======================== */
 .tasks-container {
   flex: 1;
-  overflow-y: auto; /* Permite scroll apenas nesta seção */
-  padding: 0 0 0 0; /* Removido padding lateral, card já tem */
+  overflow-y: auto;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Aumentado */
+  gap: 10px; /* Diminuído */
 }
 
 .task-card {
   background: var(--branco);
   border-radius: var(--borda-radius);
-  padding: 20px; /* Aumentado */
+  padding: 15px; /* Diminuído */
   display: flex;
-  gap: 15px;
+  gap: 10px; /* Diminuído */
   box-shadow: var(--sombra-leve);
-  border: none; /* Removido, sombra já é suficiente */
   position: relative;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .task-card:hover {
-  transform: translateY(-3px); /* Efeito de "levantar" ao passar o mouse */
+  transform: translateY(-2px); /* Efeito mais sutil */
   box-shadow: var(--sombra-media);
 }
 
 .task-card.completed {
   background: var(--cinza-claro);
   opacity: 0.9;
-  box-shadow: none; /* Remove sombra para tarefas concluídas */
+  box-shadow: none;
 }
 
 .task-card.completed::after {
   content: "✓";
   position: absolute;
-  right: 20px; /* Ajustado */
-  top: 20px; /* Ajustado */
-  font-size: 1.5rem; /* Aumentado */
+  right: 15px; /* Ajustado */
+  top: 15px; /* Ajustado */
+  font-size: 1.2rem; /* Diminuído */
   color: var(--verde);
 }
 
@@ -365,7 +367,7 @@ body {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 6px; /* Aumentado */
+  width: 4px; /* Diminuído */
   border-radius: var(--borda-radius) 0 0 var(--borda-radius);
 }
 
@@ -373,27 +375,27 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Aumentado */
+  gap: 8px; /* Diminuído */
 }
 
 .task-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start; /* Alinha itens ao topo */
+  align-items: flex-start;
 }
 
 .task-area {
-  font-weight: 700; /* Mais negrito */
+  font-weight: 700;
   color: var(--laranja-primario);
-  font-size: 1rem; /* Aumentado */
-  background-color: var(--laranja-claro); /* Fundo para a área */
-  padding: 4px 10px;
-  border-radius: 8px; /* Arredondamento para o label da área */
+  font-size: 0.85rem; /* Diminuído */
+  background-color: var(--laranja-claro);
+  padding: 3px 8px; /* Diminuído */
+  border-radius: 6px; /* Diminuído */
   color: var(--branco);
 }
 
 .task-time {
-  font-size: 0.9rem; /* Aumentado */
+  font-size: 0.8rem; /* Diminuído */
   color: var(--cinza-escuro);
   display: flex;
   flex-direction: column;
@@ -401,30 +403,30 @@ body {
 }
 
 .task-title {
-  font-weight: 600; /* Mais negrito */
-  font-size: 1.2rem; /* Aumentado */
+  font-weight: 600;
+  font-size: 1rem; /* Diminuído */
   color: var(--preto);
 }
 
 .task-desc {
-  font-size: 1rem; /* Aumentado */
+  font-size: 0.9rem; /* Diminuído */
   color: var(--cinza-escuro);
-  line-height: 1.5;
+  line-height: 1.4; /* Diminuído */
 }
 
 .task-priority {
   display: inline-block;
-  padding: 6px 12px; /* Aumentado */
-  border-radius: 8px; /* Arredondamento para o label de prioridade */
-  font-size: 0.9rem; /* Aumentado */
+  padding: 5px 10px; /* Diminuído */
+  border-radius: 6px; /* Diminuído */
+  font-size: 0.8rem; /* Diminuído */
   font-weight: 600;
-  text-transform: uppercase; /* Maiúsculas */
+  text-transform: uppercase;
 }
 
 .task-priority.urgente {
   background-color: #FFEBEE;
   color: #C62828;
-  border: 1px solid #C62828; /* Borda para destaque */
+  border: 1px solid #C62828;
 }
 
 .task-priority.espera {
@@ -440,15 +442,15 @@ body {
 }
 
 .task-checkbox {
-  min-width: 24px; /* Aumentado */
-  height: 24px; /* Aumentado */
+  min-width: 20px; /* Diminuído */
+  height: 20px; /* Diminuído */
   cursor: pointer;
   align-self: flex-start;
-  margin-top: 5px; /* Ajustado */
+  margin-top: 3px; /* Ajustado */
   appearance: none;
   background-color: var(--cinza-claro);
-  border: 2px solid var(--cinza-escuro); /* Borda mais escura */
-  border-radius: 8px; /* Arredondamento para o checkbox */
+  border: 2px solid var(--cinza-escuro);
+  border-radius: 6px; /* Diminuído */
   transition: all 0.2s ease;
 }
 
@@ -462,18 +464,18 @@ body {
   content: "✓";
   position: absolute;
   color: white;
-  font-size: 16px; /* Aumentado */
+  font-size: 14px; /* Diminuído */
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
 }
 
 .task-delete {
-  font-size: 1.3rem; /* Aumentado */
+  font-size: 1.1rem; /* Diminuído */
   color: var(--cinza-escuro);
   cursor: pointer;
   align-self: flex-start;
-  margin-top: 5px; /* Ajustado */
+  margin-top: 3px; /* Ajustado */
   transition: color 0.2s ease;
 }
 
@@ -487,35 +489,30 @@ body {
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6); /* Fundo mais escuro */
+  background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(5px); /* Efeito de blur no fundo */
+  backdrop-filter: blur(4px); /* Diminuído */
 }
 
 .modal-content {
   background: var(--branco);
   border-radius: var(--borda-radius);
-  padding: 30px; /* Aumentado */
+  padding: 25px; /* Diminuído */
   width: 100%;
-  max-width: 550px; /* Aumentado */
-  box-shadow: var(--sombra-forte); /* Sombra mais forte para modais */
+  max-width: 500px; /* Diminuído */
+  box-shadow: var(--sombra-forte);
   position: relative;
-  animation: fadeIn 0.3s ease-out; /* Animação de entrada */
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  animation: fadeIn 0.3s ease-out;
 }
 
 .close-modal {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  font-size: 1.8rem; /* Aumentado */
+  top: 12px; /* Diminuído */
+  right: 12px; /* Diminuído */
+  font-size: 1.5rem; /* Diminuído */
   cursor: pointer;
   color: var(--cinza-escuro);
   transition: color 0.2s ease;
@@ -526,195 +523,98 @@ body {
 }
 
 .modal-content h3 {
-  font-size: 1.8rem; /* Aumentado */
-  margin-bottom: 20px; /* Aumentado */
+  font-size: 1.5rem; /* Diminuído */
+  margin-bottom: 15px; /* Diminuído */
   color: var(--laranja-escuro);
   text-align: center;
 }
 
 .modal-content p {
   text-align: center;
-  margin-bottom: 25px;
-  font-size: 1.1rem;
+  margin-bottom: 20px; /* Diminuído */
+  font-size: 1rem; /* Diminuído */
   color: var(--cinza-escuro);
 }
 
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
-  gap: 15px; /* Aumentado */
-  margin-top: 30px; /* Aumentado */
+  gap: 10px; /* Diminuído */
+  margin-top: 20px; /* Diminuído */
 }
 
 .cancel-btn,
 .delete-btn,
 .submit-btn {
   border: none;
-  padding: 12px 25px; /* Aumentado */
+  padding: 10px 20px; /* Diminuído */
   border-radius: var(--borda-radius);
   cursor: pointer;
   font-weight: 600;
   color: var(--branco);
   transition: all 0.2s ease;
   box-shadow: var(--sombra-leve);
+  font-size: 0.9rem; /* Diminuído */
 }
-
-.cancel-btn { background: var(--cinza-escuro); }
-.cancel-btn:hover { background: #5a6268; box-shadow: var(--sombra-media); }
-
-.delete-btn { background: var(--vermelho); }
-.delete-btn:hover { background: #E53935; box-shadow: var(--sombra-media); }
-
-.submit-btn { background: var(--laranja-primario); }
-.submit-btn:hover { background: var(--laranja-escuro); box-shadow: var(--sombra-media); }
 
 /* ========================
    FORMULÁRIO - GERAL
 ======================== */
 .form-group {
-  margin-bottom: 20px; /* Espaçamento entre grupos de formulário */
+  margin-bottom: 15px; /* Diminuído */
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px; /* Diminuído */
   font-weight: 600;
   color: var(--preto);
-  font-size: 1rem;
+  font-size: 0.9rem; /* Diminuído */
 }
 
 .form-group input[type="text"],
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 12px 15px; /* Aumentado */
+  padding: 10px 12px; /* Diminuído */
   border: var(--borda-fina);
-  border-radius: 8px; /* Arredondamento para campos de input */
-  font-size: 1rem;
+  border-radius: 6px; /* Diminuído */
+  font-size: 0.9rem; /* Diminuído */
   color: var(--preto);
   background-color: var(--cinza-claro);
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06); /* Sombra interna sutil */
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); /* Sombra interna mais sutil */
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-group input[type="text"]::placeholder,
-.form-group textarea::placeholder {
-  color: var(--cinza-escuro);
-  opacity: 0.7;
-}
-
-.form-group input[type="text"]:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  border-color: var(--laranja-primario);
-  box-shadow: 0 0 0 3px rgba(255, 125, 51, 0.2); /* Sombra de foco */
-  outline: none;
-  background-color: var(--branco);
-}
-
 .form-group textarea {
-  resize: vertical; /* Permite redimensionar verticalmente */
-  min-height: 80px;
+  min-height: 70px; /* Diminuído */
 }
 
-/* Estilização para o select de área e prioridade */
 .form-group select {
-  appearance: none; /* Remove estilo padrão do select */
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%236c757d" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 20px;
-  cursor: pointer;
+  background-position: right 8px center; /* Ajustado */
+  background-size: 18px; /* Diminuído */
 }
 
 /* ========================
    FORMULÁRIO - RESPONSÁVEIS
 ======================== */
 .responsaveis-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* Aumentado */
+  gap: 10px; /* Diminuído */
 }
 
 .responsaveis-container.horizontal {
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 20px; /* Aumentado */
+  gap: 15px; /* Diminuído */
 }
 
 .responsavel-option {
-  flex: 1;
-  background: var(--cinza-claro);
-  padding: 15px; /* Aumentado */
+  padding: 12px; /* Diminuído */
   border-radius: var(--borda-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Centraliza o nome */
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border: 2px solid transparent;
-  box-shadow: var(--sombra-leve);
+  gap: 8px; /* Diminuído */
 }
-
-.responsavel-option:hover {
-  background: var(--cinza-medio);
-  box-shadow: var(--sombra-media);
-}
-
-.responsavel-option input[type="radio"] {
-  display: none;
-}
-
-.responsavel-option input[type="radio"]:checked + .responsavel-name {
-  font-weight: 700;
-  transform: scale(1.05); /* Efeito de zoom no nome */
-}
-
-.responsavel-option.marcos-option input[type="radio"]:checked ~ .responsavel-name {
-  color: var(--azul);
-}
-
-.responsavel-option.ester-option input[type="radio"]:checked ~ .responsavel-name {
-  color: var(--laranja-primario);
-}
-
-/* Estilo da borda quando selecionado */
-.responsavel-option.marcos-option input[type="radio"]:checked + .responsavel-name {
-  /* O seletor é um pouco complexo aqui, pois o input está escondido.
-     Vamos aplicar a borda diretamente no .responsavel-option */
-  border-color: var(--azul);
-  box-shadow: 0 0 0 3px rgba(78, 158, 245, 0.3); /* Sombra de foco azul */
-}
-
-.responsavel-option.ester-option input[type="radio"]:checked + .responsavel-name {
-  border-color: var(--laranja-primario);
-  box-shadow: 0 0 0 3px rgba(255, 125, 51, 0.3); /* Sombra de foco laranja */
-}
-
-/* Correção para aplicar a borda no elemento pai quando o radio está checado */
-.responsavel-option input[type="radio"]:checked + .responsavel-name::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: var(--borda-radius);
-  border: 2px solid;
-  z-index: -1; /* Para ficar atrás do conteúdo */
-}
-
-.responsavel-option.marcos-option input[type="radio"]:checked + .responsavel-name::before {
-  border-color: var(--azul);
-}
-
-.responsavel-option.ester-option input[type="radio"]:checked + .responsavel-name::before {
-  border-color: var(--laranja-primario);
-}
-
 
 .responsavel-name {
   font-weight: 600;
-  font-size: 1.1rem; /* Aumentado */
-  transition: transform 0.2s ease, color 0.2s ease;
+  font-size: 1rem; /* Diminuído */
 }
 
 /* ========================
@@ -724,63 +624,37 @@ body {
   .container {
     flex-direction: column;
     height: auto;
-    padding: 15px;
-  }
-
-  .divgrafico, .divdata {
-    width: 100%;
+    padding: 10px; /* Diminuído */
   }
 
   .divgrafico {
-    padding-bottom: 0; /* Remove padding extra */
-  }
-
-  .donut-chart-container {
-    margin-bottom: 20px; /* Espaçamento abaixo do gráfico */
-  }
-
-  .header-filters {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-  }
-
-  .filter-group, .search-container, .sort-btn {
     width: 100%;
   }
 
-  .filter-options {
-    position: static; /* Permite que as opções apareçam no fluxo normal */
-    margin-top: 10px;
-    box-shadow: none; /* Remove sombra extra */
-    border: var(--borda-fina); /* Adiciona borda para separar */
+  .donut-chart-container {
+    margin-bottom: 15px; /* Diminuído */
   }
 
-  .nova-task-btn {
-    margin: 0; /* Remove margem */
+  .header-filters {
+    gap: 10px; /* Diminuído */
+  }
+
+  .filter-options {
+    margin-top: 8px; /* Diminuído */
   }
 }
 
 @media (max-width: 768px) {
   .modal-content {
-    padding: 20px;
-    margin: 0 15px; /* Margem nas laterais para telas menores */
+    padding: 15px; /* Diminuído */
+    margin: 0 10px; /* Diminuído */
   }
 
   .modal-content h3 {
-    font-size: 1.5rem;
+    font-size: 1.3rem; /* Diminuído */
   }
 
   .modal-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .cancel-btn, .delete-btn, .submit-btn {
-    width: 100%;
-  }
-
-  .responsaveis-container.horizontal {
-    flex-direction: column;
+    gap: 8px; /* Diminuído */
   }
 }

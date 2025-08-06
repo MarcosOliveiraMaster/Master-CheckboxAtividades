@@ -47,12 +47,23 @@
 
         <div class="filter-group">
           <button class="filter-btn" id="filter-priority-btn">
-            <i class="fas fa-exclamation-circle"></i> Urgência
+            <i class="fas fa-exclamation-circle"></i> Prioridade
           </button>
           <div class="filter-options hidden" id="priority-options">
-            <label class="filter-option-item"><input type="checkbox" value="urgente"> Urgente</label>
-            <label class="filter-option-item"><input type="checkbox" value="espera"> Em Espera</label>
-            <label class="filter-option-item"><input type="checkbox" value="sem-urgencia"> Sem Urgência</label>
+            <label class="filter-option-item"><input type="checkbox" value="urgente"> Alta Prioridade</label>
+            <label class="filter-option-item"><input type="checkbox" value="espera"> Média Prioridade</label>
+            <label class="filter-option-item"><input type="checkbox" value="sem-urgencia"> Baixa Prioridade</label>
+          </div>
+        </div>
+
+        <!-- Novo Filtro de Responsável -->
+        <div class="filter-group">
+          <button class="filter-btn" id="filter-responsavel-btn">
+            <i class="fas fa-user"></i> Responsável
+          </button>
+          <div class="filter-options hidden" id="responsavel-options">
+            <label class="filter-option-item"><input type="checkbox" value="Marcos"> Marcos</label>
+            <label class="filter-option-item"><input type="checkbox" value="Ester"> Ester</label>
           </div>
         </div>
 
