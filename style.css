@@ -544,7 +544,20 @@ body {
 }
 
 .cancel-btn,
-.delete-btn,
+.delete-btn {
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--borda-radius);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--branco);
+  transition: all 0.2s ease;
+  box-shadow: var(--sombra-leve);
+  font-size: 0.9rem;
+  background-color: rgb(164, 1, 1);
+}
+
+
 .submit-btn {
   border: none;
   padding: 10px 20px;
@@ -555,6 +568,7 @@ body {
   transition: all 0.2s ease;
   box-shadow: var(--sombra-leve);
   font-size: 0.9rem;
+  background-color: green;
 }
 
 /* ========================

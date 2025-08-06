@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================
   const state = {
     tasks: JSON.parse(localStorage.getItem('tasks')) || [],
-    areas: ["Financeiro", "Atendimento", "Operacional", "Técnico", "Mentoria", "Inovação", "Marketing", "Pesquisa"],
+    areas: ["Atendimento", "Operacional", "Financeiro", "TI - Técnologia", "Mentoria", "Inovação", "Jurídico", "Marketing", "Pesquisa"],
     colaboradores: [
       { nome: "Marcos", cor: "--azul" },
       { nome: "Ester", cor: "--vermelho" } // Alterado para vermelho para Ester
