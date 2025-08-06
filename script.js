@@ -13,10 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filterAreaBtn: document.getElementById('filter-area-btn'),
     filterPriorityBtn: document.getElementById('filter-priority-btn'),
-    filterResponsavelBtn: document.getElementById('filter-responsavel-btn'), // Novo DOM element
+    filterResponsavelBtn: document.getElementById('filter-responsavel-btn'),
+    filterStatusBtn: document.getElementById('filter-status-btn'), // Novo DOM element
     areaOptions: document.getElementById('area-options'),
     priorityOptions: document.getElementById('priority-options'),
-    responsavelOptions: document.getElementById('responsavel-options'), // Novo DOM element
+    responsavelOptions: document.getElementById('responsavel-options'),
+    statusOptions: document.getElementById('status-options'), // Novo DOM element
     searchInput: document.getElementById('search-input'),
     sortTimeBtn: document.getElementById('sort-time-btn'),
 
@@ -42,14 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
     areas: ["Financeiro", "Atendimento", "Operacional", "Técnico", "Mentoria", "Inovação", "Marketing", "Pesquisa"],
     colaboradores: [
       { nome: "Marcos", cor: "--azul" },
-      { nome: "Ester", cor: "--laranja-primario" }
+      { nome: "Ester", cor: "--vermelho" } // Alterado para vermelho para Ester
     ],
     sortOrder: 'desc', // 'desc' para mais novas, 'asc' para mais antigas
     currentTaskId: null,
     activeFilters: {
       areas: [],
       priorities: [],
-      responsaveis: [] // Novo filtro de responsáveis
+      responsaveis: [],
+      status: [] // Novo filtro de status (e.g., 'completed', 'pending')
     }
   };
 
@@ -85,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filterTasks();
     renderAreaFilters();
     renderAreaOptions();
-    renderResponsavelOptions();
+    renderResponsavelOptionsForModal(); // Renomeado para clareza
     updateChart();
     updateSortButtonText();
   }
@@ -95,8 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // =============================
   function renderTasks(tasksToRender = state.tasks) {
     const sorted = [...tasksToRender].sort((a, b) => {
+      // Prioriza tarefas não concluídas
       if (a.completed && !b.completed) return 1;
       if (!a.completed && b.completed) return -1;
+      // Em seguida, ordena por timestamp
       return state.sortOrder === 'asc' ? a.timestamp - b.timestamp : b.timestamp - a.timestamp;
     });
 
@@ -106,7 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
            data-area="${task.area}"
            data-priority="${task.priority}"
            data-responsavel="${task.responsavel}"
-           data-time="${task.timestamp}">
+           data-time="${task.timestamp}"
+           data-status="${task.completed ? 'completed' : 'pending'}">
         <div class="task-border" style="border-left: 4px solid ${getResponsavelColor(task.responsavel)}"></div>
         <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}>
         <div class="task-content">
@@ -145,7 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function renderResponsavelOptions() {
+  // Renderiza as opções de responsável no modal de cadastro/edição
+  function renderResponsavelOptionsForModal() {
     const container = DOM.taskModal.querySelector('.responsaveis-container');
     container.innerHTML = state.colaboradores.map(colab => `
       <label class="responsavel-option ${colab.nome.toLowerCase()}-option">
@@ -195,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
       filterTasks();
     });
 
-    // Novo listener para o filtro de responsável
     DOM.responsavelOptions.addEventListener('change', e => {
       const val = e.target.value;
       if (e.target.checked) {
@@ -207,6 +213,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       filterTasks();
     });
+
+    // Novo listener para o filtro de status de conclusão
+    DOM.statusOptions.addEventListener('change', e => {
+      const val = e.target.value; // 'completed' ou 'pending'
+      if (e.target.checked) {
+        if (!state.activeFilters.status.includes(val)) {
+          state.activeFilters.status.push(val);
+        }
+      } else {
+        state.activeFilters.status = state.activeFilters.status.filter(s => s !== val);
+      }
+      filterTasks();
+    });
   }
 
   function filterTasks() {
@@ -215,9 +234,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const matchesSearch = task.title.toLowerCase().includes(search) || task.desc.toLowerCase().includes(search);
       const matchesArea = state.activeFilters.areas.length === 0 || state.activeFilters.areas.includes(task.area);
       const matchesPriority = state.activeFilters.priorities.length === 0 || state.activeFilters.priorities.includes(task.priority);
-      const matchesResponsavel = state.activeFilters.responsaveis.length === 0 || state.activeFilters.responsaveis.includes(task.responsavel); // Novo filtro
+      const matchesResponsavel = state.activeFilters.responsaveis.length === 0 || state.activeFilters.responsaveis.includes(task.responsavel);
+      
+      // Lógica para o novo filtro de status
+      const matchesStatus = state.activeFilters.status.length === 0 ||
+                            (state.activeFilters.status.includes('completed') && task.completed) ||
+                            (state.activeFilters.status.includes('pending') && !task.completed);
 
-      return matchesSearch && matchesArea && matchesPriority && matchesResponsavel;
+      return matchesSearch && matchesArea && matchesPriority && matchesResponsavel && matchesStatus;
     });
     renderTasks(filtered);
   }
@@ -254,8 +278,9 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.taskDescInput.value = '';
     DOM.taskPrioritySelect.value = 'sem-urgencia';
     DOM.taskAreaSelect.value = '';
-    const selectedResponsavel = DOM.taskModal.querySelector('input[name="responsavel"]:checked');
-    if (selectedResponsavel) selectedResponsavel.checked = false;
+    // Desmarcar todos os radio buttons de responsável
+    const responsavelRadios = DOM.taskModal.querySelectorAll('input[name="responsavel"]');
+    responsavelRadios.forEach(radio => radio.checked = false);
     openModal(DOM.taskModal);
   }
 
@@ -372,7 +397,8 @@ document.addEventListener('DOMContentLoaded', () => {
     DOM.novaTaskBtn.addEventListener('click', showTaskModal);
     DOM.filterAreaBtn.addEventListener('click', () => toggleFilter(DOM.areaOptions));
     DOM.filterPriorityBtn.addEventListener('click', () => toggleFilter(DOM.priorityOptions));
-    DOM.filterResponsavelBtn.addEventListener('click', () => toggleFilter(DOM.responsavelOptions)); // Novo evento
+    DOM.filterResponsavelBtn.addEventListener('click', () => toggleFilter(DOM.responsavelOptions));
+    DOM.filterStatusBtn.addEventListener('click', () => toggleFilter(DOM.statusOptions)); // Novo evento
     DOM.searchInput.addEventListener('input', filterTasks);
     DOM.sortTimeBtn.addEventListener('click', toggleSortOrder);
 
@@ -413,9 +439,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!DOM.filterPriorityBtn.contains(e.target) && !DOM.priorityOptions.contains(e.target)) {
         DOM.priorityOptions.classList.add('hidden');
       }
-      // Novo: Fechar filtro de responsável ao clicar fora
       if (!DOM.filterResponsavelBtn.contains(e.target) && !DOM.responsavelOptions.contains(e.target)) {
         DOM.responsavelOptions.classList.add('hidden');
+      }
+      // Novo: Fechar filtro de status ao clicar fora
+      if (!DOM.filterStatusBtn.contains(e.target) && !DOM.statusOptions.contains(e.target)) {
+        DOM.statusOptions.classList.add('hidden');
       }
     });
   }
